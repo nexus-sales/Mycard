@@ -1,0 +1,48 @@
+# Producción en Dokploy (despliegue desde GitHub).
+# Solo la app: PostgreSQL es un servicio existente en Dokploy, accesible vía DATABASE_URL.
+# Sin puertos publicados: Traefik enruta por la red interna dokploy-network.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - APP_URL=${APP_URL:?Definir APP_URL (ej. https://nexus-sales.eu)}
+      - DATABASE_URL=${DATABASE_URL:?Definir DATABASE_URL del PostgreSQL existente}
+      - TRUSTED_PROXY_HOPS=${TRUSTED_PROXY_HOPS:-1}
+      - SESSION_COOKIE_NAME=${SESSION_COOKIE_NAME:-__Host-sid}
+      - SESSION_DURATION_SECONDS=${SESSION_DURATION_SECONDS:-604800}
+      - UPLOAD_DIR=/app/uploads
+      - GOOGLE_WALLET_ISSUER_ID=${GOOGLE_WALLET_ISSUER_ID:-}
+      - GOOGLE_WALLET_SERVICE_ACCOUNT_JSON=${GOOGLE_WALLET_SERVICE_ACCOUNT_JSON:-}
+    volumes:
+      - uploads_data:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+    expose:
+      - "3000"
+    networks:
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      - "traefik.http.routers.mycard.rule=Host(`${APP_DOMAIN:-nexus-sales.eu}`)"
+      - "traefik.http.routers.mycard.entrypoints=websecure"
+      - "traefik.http.routers.mycard.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mycard.loadbalancer.server.port=3000"
+
+volumes:
+  uploads_data:
+    name: mycard_uploads_data
+
+networks:
+  dokploy-network:
+    external: true
