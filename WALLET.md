@@ -95,5 +95,5 @@ Mientras tu emisor esté en modo borrador (**Draft**) y no hayas solicitado la a
 
 Google Wallet descarga la foto de perfil/logo del pase realizando peticiones `GET` directamente desde los servidores de Google a tu dominio:
 
-- **URLs Públicas:** La app genera URLs absolutas como `https://nexus-sales.eu/api/uploads/xxx.webp`. El dominio debe ser accesible públicamente por HTTPS (la ruta `/api/uploads/*` no debe quedar detrás de la VPN ni de autenticación del proxy).
+- **URLs Públicas:** La app genera URLs absolutas como `https://mycard.nexus-sales.eu/api/uploads/xxx.webp`. El dominio debe ser accesible públicamente por HTTPS (la ruta `/api/uploads/*` no debe quedar detrás de la VPN ni de autenticación del proxy).
 - La ruta `/api/uploads/[filename]` incluye cabeceras `Cache-Control: public, max-age=31536000, immutable` y `X-Content-Type-Options: nosniff` para facilitar la indexación instantánea de Google Wallet.

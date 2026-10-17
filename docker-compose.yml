@@ -11,7 +11,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - APP_URL=${APP_URL:?Definir APP_URL (ej. https://nexus-sales.eu)}
+      - APP_URL=${APP_URL:?Definir APP_URL (ej. https://mycard.nexus-sales.eu)}
       - DATABASE_URL=${DATABASE_URL:?Definir DATABASE_URL del PostgreSQL existente}
       - TRUSTED_PROXY_HOPS=${TRUSTED_PROXY_HOPS:-1}
       - SESSION_COOKIE_NAME=${SESSION_COOKIE_NAME:-__Host-sid}
@@ -34,7 +34,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=dokploy-network"
-      - "traefik.http.routers.mycard.rule=Host(`${APP_DOMAIN:-nexus-sales.eu}`)"
+      - "traefik.http.routers.mycard.rule=Host(`${APP_DOMAIN:-mycard.nexus-sales.eu}`)"
       - "traefik.http.routers.mycard.entrypoints=websecure"
       - "traefik.http.routers.mycard.tls.certresolver=letsencrypt"
       - "traefik.http.services.mycard.loadbalancer.server.port=3000"

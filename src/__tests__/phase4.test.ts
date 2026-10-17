@@ -36,7 +36,7 @@ describe("Fase 4 - Google Wallet: IDs Deterministas y Payloads", () => {
       primaryColor: "#059669",
     };
 
-    const payload = buildGenericObjectPayload(issuerId, cardData, "https://nexus-sales.eu");
+    const payload = buildGenericObjectPayload(issuerId, cardData, "https://mycard.nexus-sales.eu");
 
     expect(payload.id).toBe("3388000000022345678.card_card123");
     expect(payload.classId).toBe("3388000000022345678.mycard_business_card_v1");
@@ -46,11 +46,11 @@ describe("Fase 4 - Google Wallet: IDs Deterministas y Payloads", () => {
 
     // Barcode QR
     expect(payload.barcode.type).toBe("QR_CODE");
-    expect(payload.barcode.value).toBe("https://nexus-sales.eu/c/marta-dev");
+    expect(payload.barcode.value).toBe("https://mycard.nexus-sales.eu/c/marta-dev");
 
     // Logo público HTTPS
     expect(payload.logo?.sourceUri.uri).toBe(
-      "https://nexus-sales.eu/api/uploads/a1b2c3d4e5f60718293a4b5c6d7e8f90.webp"
+      "https://mycard.nexus-sales.eu/api/uploads/a1b2c3d4e5f60718293a4b5c6d7e8f90.webp"
     );
 
     // Módulos de texto respetando privacidad

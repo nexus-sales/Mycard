@@ -171,7 +171,7 @@ Abre en el navegador: [http://localhost:3000](http://localhost:3000).
    ├────> Genera un enlace de invitación (con o sin email prefijado, duración en horas)
    │
    ▼
-[ Amigo / Usuario ] ────> Abre enlace: https://nexus-sales.eu/invite/<token_secreto>
+[ Amigo / Usuario ] ────> Abre enlace: https://mycard.nexus-sales.eu/invite/<token_secreto>
    │
    ├────> Elige su Nombre, Contraseña y Slug personal (ej: "carlos")
    ├────> Se crea automáticamente su cuenta, sesión y tarjeta digital

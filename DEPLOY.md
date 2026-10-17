@@ -89,8 +89,8 @@ DATABASE_URL=postgresql://mycard_app:CONTRASENA@HOST:5432/mycard?schema=public&s
 
 | Variable | Valor | Notas |
 | :--- | :--- | :--- |
-| `APP_URL` | `https://nexus-sales.eu` | Sin barra final (obligatoria) |
-| `APP_DOMAIN` | `nexus-sales.eu` | Para la regla de Traefik del compose |
+| `APP_URL` | `https://mycard.nexus-sales.eu` | Sin barra final (obligatoria) |
+| `APP_DOMAIN` | `mycard.nexus-sales.eu` | Para la regla de Traefik del compose |
 | `DATABASE_URL` | ver sección 2 | Obligatoria |
 | `TRUSTED_PROXY_HOPS` | `1` | Proxies de confianza delante de la app (solo Traefik = 1) |
 | `SESSION_COOKIE_NAME` | `__Host-sid` | |
@@ -100,7 +100,7 @@ DATABASE_URL=postgresql://mycard_app:CONTRASENA@HOST:5432/mycard?schema=public&s
 
 4. **Dominio / HTTPS**: el compose lleva etiquetas de Traefik con el resolver `letsencrypt`. Comprueba que ese nombre coincide con el de tu Traefik (mira otra app tuya). Alternativa: quita las etiquetas y añade el dominio en la pestaña **Domains** de Dokploy (servicio `app`, puerto `3000`, HTTPS + Let's Encrypt). No uses ambos a la vez.
 5. **Deploy**. Revisa los logs: debe aparecer `prisma migrate deploy` aplicando `20261016000000_init`.
-6. Comprueba `https://nexus-sales.eu/api/health` → `200 {"status":"healthy"}`.
+6. Comprueba `https://mycard.nexus-sales.eu/api/health` → `200 {"status":"healthy"}`.
 7. Crea el primer administrador. En Dokploy → servicio `app` → **Terminal** (shell `sh`), ejecuta una sola vez:
    ```bash
    ADMIN_EMAIL='tu@email.com' ADMIN_PASSWORD='contraseña-de-12+-caracteres' ADMIN_NAME='Tu Nombre' node prisma/seed.js
@@ -160,8 +160,8 @@ Crea estos monitores (intervalo 60 s, reintentos 3):
 
 | Monitor | Tipo | Configuración |
 | :--- | :--- | :--- |
-| MyCard – Salud | HTTP(s) – Keyword | URL `https://nexus-sales.eu/api/health`, keyword `"status":"healthy"`, método GET. Detecta caída de app **y** de base de datos/almacenamiento |
-| MyCard – Web | HTTP(s) | URL `https://nexus-sales.eu/login`, código `200-299` |
+| MyCard – Salud | HTTP(s) – Keyword | URL `https://mycard.nexus-sales.eu/api/health`, keyword `"status":"healthy"`, método GET. Detecta caída de app **y** de base de datos/almacenamiento |
+| MyCard – Web | HTTP(s) | URL `https://mycard.nexus-sales.eu/login`, código `200-299` |
 | MyCard – Certificado | HTTP(s) | Activa *Certificate Expiry Notification* (avisa a 21/14/7 días) |
 | Postgres | TCP Port | Host y puerto 5432 del PostgreSQL, **solo desde la red interna/VPN** |
 | Backups (opcional) | Push | Crea el monitor Push y haz que la tarea de backup llame a su URL al terminar; *Heartbeat interval* 26 h. Si un día no hay backup, salta la alarma |
