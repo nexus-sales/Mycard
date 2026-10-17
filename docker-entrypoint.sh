@@ -9,7 +9,7 @@ if [ -z "$DATABASE_URL" ]; then
 fi
 
 echo "==> [MyCard] Ejecutando migraciones de Prisma (prisma migrate deploy)..."
-npx prisma migrate deploy
+node /opt/prisma-cli/node_modules/prisma/build/index.js migrate deploy --schema=./prisma/schema.prisma
 
 echo "==> [MyCard] Directorio de subidas configurado en: ${UPLOAD_DIR:-/app/uploads}"
 mkdir -p "${UPLOAD_DIR:-/app/uploads}"

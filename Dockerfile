@@ -14,6 +14,9 @@ COPY prisma ./prisma/
 RUN npm ci
 RUN npx prisma generate
 
+# CLI de Prisma aislado (con todas sus dependencias) para ejecutar migraciones en producción
+RUN mkdir /prisma-cli && cd /prisma-cli && npm init -y >/dev/null     && npm install --no-audit --no-fund "prisma@$(node -p "require('/app/node_modules/prisma/package.json').version")"
+
 # ── 2. Etapa de Compilación ──
 FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
@@ -50,11 +53,11 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copiar esquema Prisma y CLI para migraciones automáticas en arranque
+# Copiar esquema Prisma, cliente generado y CLI para migraciones automáticas en arranque
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=deps /prisma-cli /opt/prisma-cli
 
 # Copiar script de arranque seguro
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
