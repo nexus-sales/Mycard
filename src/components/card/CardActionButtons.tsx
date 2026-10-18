@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import GoogleWalletButton from "./GoogleWalletButton";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
+import { readableTextColor } from "@/lib/qr";
 
 interface ActionButtonsProps {
   cardName: string;
@@ -104,7 +105,7 @@ export default function CardActionButtons({
       <button
         type="button"
         onClick={handleSaveContact}
-        style={{ backgroundColor: primaryColor }}
+        style={{ backgroundColor: primaryColor, color: readableTextColor(primaryColor) }}
         className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-cal shadow-lg transition-all hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-basalto"
       >
         <svg

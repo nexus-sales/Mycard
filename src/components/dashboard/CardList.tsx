@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createCardAction, deleteCardAction } from "@/lib/actions/card";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
+import { readableTextColor } from "@/lib/qr";
 
 export interface CardSummary {
   id: string;
@@ -115,7 +116,7 @@ function CardItem({ card }: { card: CardSummary }) {
         <div className="flex items-start gap-3">
           <span
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-sm font-black text-cal"
-            style={{ backgroundColor: card.primaryColor }}
+            style={{ backgroundColor: card.primaryColor, color: readableTextColor(card.primaryColor) }}
             aria-hidden="true"
           >
             {initials}

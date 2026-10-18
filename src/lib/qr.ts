@@ -50,3 +50,15 @@ export function isQrContrastScannable(fgColor: string, bgColor: string): {
     ratio,
   };
 }
+
+/**
+ * Elige el color de texto (oscuro o claro) con más contraste sobre un fondo HEX.
+ * Sirve para botones cuyo color de fondo lo elige el usuario.
+ */
+export function readableTextColor(
+  backgroundHex: string,
+  dark = "#14100D",
+  light = "#F0EDE6"
+): string {
+  return getContrastRatio(backgroundHex, dark) >= getContrastRatio(backgroundHex, light) ? dark : light;
+}
