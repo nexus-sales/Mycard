@@ -15,7 +15,9 @@ RUN npm ci
 RUN npx prisma generate
 
 # CLI de Prisma aislado (con todas sus dependencias) para ejecutar migraciones en producción
-RUN mkdir /prisma-cli && cd /prisma-cli && npm init -y >/dev/null     && npm install --no-audit --no-fund "prisma@$(node -p "require('/app/node_modules/prisma/package.json').version")"
+RUN mkdir /prisma-cli && cd /prisma-cli && npm init -y >/dev/null \
+    && npm pkg set overrides.deepmerge-ts="^8.0.2" \
+    && npm install --no-audit --no-fund "prisma@$(node -p "require('/app/node_modules/prisma/package.json').version")"
 
 # ── 2. Etapa de Compilación ──
 FROM node:20-alpine AS builder
