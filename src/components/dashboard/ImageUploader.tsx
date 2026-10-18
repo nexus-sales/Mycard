@@ -4,6 +4,8 @@ import { useState, useRef, useTransition } from "react";
 import Image from "next/image";
 import { uploadCardImageAction, deleteCardImageAction } from "@/lib/actions/card";
 import { useI18n } from "@/lib/i18n/client";
+import { fmt } from "@/lib/i18n/config";
+import { IMAGE_MAX_BYTES } from "@/lib/cards";
 
 interface ImageUploaderProps {
   cardId: string;
@@ -32,13 +34,29 @@ export default function ImageUploader({
     if (!file) return;
 
     setError(null);
+
+    // Se comprueba antes de enviar: si el cuerpo supera el límite del servidor, la acción falla sin mensaje útil
+    const maxBytes = IMAGE_MAX_BYTES[type];
+    if (file.size > maxBytes) {
+      setError(fmt(t.actions.uploadTooLarge, { mb: Math.round(maxBytes / (1024 * 1024)) }));
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("type", type);
     formData.append("cardId", cardId);
 
     startTransition(async () => {
-      const res = await uploadCardImageAction(formData);
+      let res: Awaited<ReturnType<typeof uploadCardImageAction>>;
+      try {
+        res = await uploadCardImageAction(formData);
+      } catch {
+        setError(t.actions.imageProcessing);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
       if (res.error) {
         setError(res.error);
       } else if (res.publicPath) {

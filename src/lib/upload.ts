@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import sharp, { Metadata } from "sharp";
+import { IMAGE_MAX_BYTES } from "@/lib/cards";
 
 /** Error de subida con código estable; la acción de servidor lo traduce al idioma del usuario. */
 export type UploadErrorCode = "tooLarge" | "badFormat" | "corrupt" | "unsupported";
@@ -68,12 +69,12 @@ export type ImageUploadType = "avatar" | "banner";
 
 const LIMITS: Record<ImageUploadType, { maxBytes: number; width: number; height: number }> = {
   avatar: {
-    maxBytes: 2 * 1024 * 1024, // 2MB
+    maxBytes: IMAGE_MAX_BYTES.avatar, // 2MB
     width: 400,
     height: 400,
   },
   banner: {
-    maxBytes: 4 * 1024 * 1024, // 4MB
+    maxBytes: IMAGE_MAX_BYTES.banner, // 4MB
     width: 1200,
     height: 400,
   },

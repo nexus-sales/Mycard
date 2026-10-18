@@ -3,6 +3,13 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: ["sharp", "argon2"],
+  experimental: {
+    serverActions: {
+      // Por defecto es 1 MB y las subidas de imagen (hasta 4 MB + cabeceras multipart) fallaban.
+      // El tamaño real de cada imagen se vuelve a validar en el servidor (lib/upload.ts).
+      bodySizeLimit: "5mb",
+    },
+  },
   headers: async () => {
     return [
       {

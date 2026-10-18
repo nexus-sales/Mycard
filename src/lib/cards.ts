@@ -3,6 +3,12 @@ import { RESERVED_SLUGS } from "@/lib/validations";
 /** Máximo de tarjetas que puede tener una misma cuenta. */
 export const MAX_CARDS_PER_USER = 5;
 
+/** Tamaño máximo de imagen por tipo (lo usan el servidor y el navegador). */
+export const IMAGE_MAX_BYTES = {
+  avatar: 2 * 1024 * 1024,
+  banner: 4 * 1024 * 1024,
+} as const;
+
 /** Convierte un texto en un slug válido (minúsculas, números y guiones; sin acentos). */
 export function slugify(text: string): string {
   return text
