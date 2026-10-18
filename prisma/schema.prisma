@@ -42,7 +42,7 @@ model User {
   sessions     Session[]
   invites      Invite[]  @relation("CreatedBy")
   usedInvite   Invite?   @relation("UsedBy")
-  card         Card?
+  cards        Card[]
 
   @@index([email])
 }
@@ -79,7 +79,7 @@ model Invite {
 
 model Card {
   id        String       @id @default(cuid())
-  userId    String       @unique
+  userId    String
   slug      String       @unique
   template  CardTemplate @default(MINIMAL)
   theme     Json         @default("{}")

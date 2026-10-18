@@ -5,6 +5,8 @@ import { useI18n } from "@/lib/i18n/client";
 
 interface GoogleWalletButtonProps {
   slug?: string;
+  /** Id de la tarjeta (obligatorio cuando isOwner es true). */
+  cardId?: string;
   isOwner?: boolean;
   className?: string;
 }
@@ -15,6 +17,7 @@ interface GoogleWalletButtonProps {
  */
 export default function GoogleWalletButton({
   slug,
+  cardId,
   isOwner = false,
   className = "",
 }: GoogleWalletButtonProps) {
@@ -37,7 +40,9 @@ export default function GoogleWalletButton({
     setLoading(true);
     setToast(null);
 
-    const targetUrl = isOwner ? "/api/wallet/google" : `/c/${slug}/wallet`;
+    const targetUrl = isOwner
+      ? `/api/wallet/google?cardId=${encodeURIComponent(cardId ?? "")}`
+      : `/c/${slug}/wallet`;
 
     try {
       if (isOwner) {

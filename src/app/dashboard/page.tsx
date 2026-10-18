@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { requireSession } from "@/lib/session";
-import { getOrCreateUserCard } from "@/lib/actions/card";
-import { logoutAction } from "@/lib/actions/auth";
-import CardEditor from "@/components/dashboard/CardEditor";
-import Link from "next/link";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { listUserCards } from "@/lib/actions/card";
 import { getI18n } from "@/lib/i18n/server";
+import { MAX_CARDS_PER_USER } from "@/lib/cards";
+import { defaultTheme } from "@/lib/validations";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import CardList, { type CardSummary } from "@/components/dashboard/CardList";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
@@ -15,69 +15,28 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function DashboardPage() {
   const user = await requireSession();
   const { t } = await getI18n();
-  const card = await getOrCreateUserCard();
+  const cards = await listUserCards();
 
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const summaries: CardSummary[] = cards.map((card) => {
+    const theme = (card.theme && typeof card.theme === "object" ? card.theme : {}) as { primaryColor?: string };
+    return {
+      id: card.id,
+      slug: card.slug,
+      active: card.active,
+      views: card.views,
+      template: card.template,
+      name: card.content?.name ?? "",
+      jobTitle: card.content?.jobTitle ?? "",
+      company: card.content?.company ?? "",
+      primaryColor: theme.primaryColor || defaultTheme.primaryColor,
+    };
+  });
 
   return (
     <main className="min-h-screen bg-paper text-ink">
-      {/* Barra de navegación superior */}
-      <header className="border-b border-ink/15 bg-paper-2/60 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="flex items-center gap-2 font-bold text-ink hover:text-sea transition-colors"
-            >
-              <div className="w-8 h-8 rounded-lg bg-voltio text-basalto flex items-center justify-center text-sm font-black">
-                MC
-              </div>
-              <span className="hidden sm:inline">MyCard</span>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <LanguageSwitcher />
-            <span className="text-xs text-ink-2 hidden sm:inline">
-              {t.dashboard.connectedAs} <strong className="text-ink">{user.email}</strong>
-            </span>
-
-            {user.role === "ADMIN" && (
-              <Link
-                href="/admin"
-                className="text-xs px-3 py-1.5 rounded-lg bg-sea/10 text-sea border border-sea/20 hover:bg-sea/20 transition-colors"
-              >
-                {t.dashboard.adminPanel}
-              </Link>
-            )}
-
-            <form action={logoutAction}>
-              <button
-                type="submit"
-                className="text-xs px-3 py-1.5 rounded-lg bg-paper hover:bg-ink-3/30 text-ink-2 border border-ink/15 transition-colors"
-              >
-                {t.dashboard.logout}
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
-
-      {/* Contenido principal del editor */}
+      <DashboardHeader user={user} t={t} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <CardEditor
-          initialCard={{
-            id: card.id,
-            slug: card.slug,
-            template: card.template,
-            theme: card.theme,
-            active: card.active,
-            allowPublicWallet: card.allowPublicWallet,
-            views: card.views,
-            content: card.content,
-          }}
-          appUrl={appUrl}
-        />
+        <CardList cards={summaries} max={MAX_CARDS_PER_USER} />
       </div>
     </main>
   );

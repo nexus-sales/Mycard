@@ -12,10 +12,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   // El usuario únicamente puede generar el pase de SU PROPIA tarjeta
-  const card = await prisma.card.findUnique({
-    where: { userId: sessionUser.id },
-    include: { content: true },
-  });
+  const cardId = request.nextUrl.searchParams.get("cardId");
+  const card = cardId
+    ? await prisma.card.findFirst({
+        where: { id: cardId, userId: sessionUser.id },
+        include: { content: true },
+      })
+    : null;
 
   if (!card || !card.content) {
     return NextResponse.json(

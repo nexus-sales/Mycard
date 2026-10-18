@@ -177,7 +177,7 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
     const payloadToSave = currentPayload;
     const snapshotToSave = currentSnapshot;
     startTransition(async () => {
-      const res = await updateCardAction(null, payloadToSave);
+      const res = await updateCardAction(initialCard.id, payloadToSave);
 
       if (res.error) {
         setSaveStatus({ error: res.error });
@@ -429,6 +429,7 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
             </h2>
 
             <ImageUploader
+              cardId={initialCard.id}
               type="avatar"
               label={t.editor.avatarLabel}
               helperText={t.editor.avatarHelp}
@@ -438,6 +439,7 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
 
             <div className="pt-2 border-t border-ink/15">
               <ImageUploader
+                cardId={initialCard.id}
                 type="banner"
                 label={t.editor.bannerLabel}
                 helperText={t.editor.bannerHelp}
@@ -737,7 +739,7 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
                   {t.editor.yourPassHelp}
                 </p>
                 <div className="max-w-xs">
-                  <GoogleWalletButton slug={savedSlug} isOwner={true} />
+                  <GoogleWalletButton slug={savedSlug} cardId={initialCard.id} isOwner={true} />
                 </div>
               </div>
             )}

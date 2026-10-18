@@ -6,6 +6,7 @@ import { uploadCardImageAction, deleteCardImageAction } from "@/lib/actions/card
 import { useI18n } from "@/lib/i18n/client";
 
 interface ImageUploaderProps {
+  cardId: string;
   type: "avatar" | "banner";
   label: string;
   helperText: string;
@@ -14,6 +15,7 @@ interface ImageUploaderProps {
 }
 
 export default function ImageUploader({
+  cardId,
   type,
   label,
   helperText,
@@ -33,6 +35,7 @@ export default function ImageUploader({
     const formData = new FormData();
     formData.append("file", file);
     formData.append("type", type);
+    formData.append("cardId", cardId);
 
     startTransition(async () => {
       const res = await uploadCardImageAction(formData);
@@ -48,7 +51,7 @@ export default function ImageUploader({
   const handleDelete = () => {
     setError(null);
     startTransition(async () => {
-      const res = await deleteCardImageAction(type);
+      const res = await deleteCardImageAction(cardId, type);
       if (res.error) {
         setError(res.error);
       } else {

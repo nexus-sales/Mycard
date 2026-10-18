@@ -13,60 +13,113 @@ import { revalidatePath } from "next/cache";
 import { getI18n } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/config";
 import { translateFieldErrors } from "@/lib/i18n/dictionaries";
+import { MAX_CARDS_PER_USER, buildSlugCandidate } from "@/lib/cards";
 
 /**
- * Obtiene la tarjeta del usuario actual, o la inicializa si no existe aún.
- * Garantiza que cada usuario solo accede a SU PROPIA tarjeta.
+ * Lista las tarjetas de la cuenta actual (más antiguas primero).
+ * Solo devuelve tarjetas del propio usuario.
  */
-export async function getOrCreateUserCard() {
+export async function listUserCards() {
   const sessionUser = await requireSession();
 
-  let card = await prisma.card.findUnique({
+  return prisma.card.findMany({
     where: { userId: sessionUser.id },
+    orderBy: { createdAt: "asc" },
     include: { content: true },
   });
+}
 
-  if (!card) {
-    // Generar un slug inicial único a partir del email o nombre
-    const baseSlug = sessionUser.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "")
-      .slice(0, 20) || "mi-tarjeta";
+/**
+ * Obtiene UNA tarjeta por id, comprobando que pertenece al usuario autenticado
+ * (evita IDOR: un id ajeno devuelve null igual que uno inexistente).
+ */
+export async function getUserCard(cardId: string) {
+  const sessionUser = await requireSession();
 
-    let candidateSlug = baseSlug;
-    if (candidateSlug.length < 3) candidateSlug = `user-${sessionUser.id.slice(0, 6)}`;
+  return prisma.card.findFirst({
+    where: { id: cardId, userId: sessionUser.id },
+    include: { content: true },
+  });
+}
 
-    // Comprobar colisión de slug
-    const existing = await prisma.card.findUnique({ where: { slug: candidateSlug } });
-    if (existing) {
-      candidateSlug = `${candidateSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+/** Crea una tarjeta nueva en la cuenta, respetando el límite por usuario. */
+export async function createCardAction(): Promise<{ cardId?: string; error?: string }> {
+  const sessionUser = await requireSession();
+  const { t } = await getI18n();
+
+  const limitError = { error: fmt(t.actions.cardLimit, { max: MAX_CARDS_PER_USER }) };
+
+  try {
+    const existing = await prisma.card.count({ where: { userId: sessionUser.id } });
+    if (existing >= MAX_CARDS_PER_USER) return limitError;
+
+    // Slug único: nombre de la cuenta y, si choca, sufijo numérico aleatorio
+    let slug = "";
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const candidate = buildSlugCandidate(sessionUser.name, attempt);
+      const taken = await prisma.card.findUnique({ where: { slug: candidate } });
+      if (!taken) {
+        slug = candidate;
+        break;
+      }
     }
+    if (!slug) return { error: t.actions.createFailed };
 
-    card = await prisma.card.create({
-      data: {
-        userId: sessionUser.id,
-        slug: candidateSlug,
-        template: "MINIMAL",
-        theme: defaultTheme,
-        active: true,
-        content: {
-          create: {
-            name: sessionUser.name,
-            email: sessionUser.email,
-            showEmail: true,
-            showPhone: false,
-            showAddress: false,
-            socialLinks: [],
+    const card = await prisma.$transaction(async (tx) => {
+      // Se vuelve a contar dentro de la transacción para reducir carreras de doble clic
+      const count = await tx.card.count({ where: { userId: sessionUser.id } });
+      if (count >= MAX_CARDS_PER_USER) return null;
+
+      return tx.card.create({
+        data: {
+          userId: sessionUser.id,
+          slug,
+          template: "MINIMAL",
+          theme: defaultTheme,
+          active: true,
+          content: {
+            create: {
+              name: sessionUser.name,
+              email: sessionUser.email,
+              showEmail: true,
+              showPhone: false,
+              showAddress: false,
+              socialLinks: [],
+            },
           },
         },
-      },
-      include: { content: true },
+        select: { id: true },
+      });
     });
-  }
 
-  return card;
+    if (!card) return limitError;
+
+    revalidatePath("/dashboard");
+    return { cardId: card.id };
+  } catch (err) {
+    console.error("Error creando tarjeta:", err);
+    return { error: t.actions.createFailed };
+  }
+}
+
+/** Elimina una tarjeta propia (y sus imágenes subidas). */
+export async function deleteCardAction(cardId: string): Promise<{ success?: boolean; error?: string }> {
+  const sessionUser = await requireSession();
+  const { t } = await getI18n();
+
+  const card = await prisma.card.findFirst({
+    where: { id: cardId, userId: sessionUser.id },
+    include: { content: true },
+  });
+  if (!card) return { error: t.actions.cardNotFound };
+
+  await prisma.card.delete({ where: { id: card.id } });
+  await deleteOldImage(card.content?.avatarPath);
+  await deleteOldImage(card.content?.bannerPath);
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/c/${card.slug}`);
+  return { success: true };
 }
 
 export type UpdateCardResult = {
@@ -80,7 +133,7 @@ export type UpdateCardResult = {
  * Comprueba estrictamente la autorización: solo edita la tarjeta del sessionUser.
  */
 export async function updateCardAction(
-  _prevState: unknown,
+  cardId: string,
   payload: {
     settings: {
       slug: string;
@@ -127,8 +180,8 @@ export async function updateCardAction(
   }
 
   // Obtener la tarjeta del usuario autenticado
-  const currentCard = await prisma.card.findUnique({
-    where: { userId: sessionUser.id },
+  const currentCard = await prisma.card.findFirst({
+    where: { id: cardId, userId: sessionUser.id },
   });
 
   if (!currentCard) {
@@ -251,14 +304,15 @@ export async function uploadCardImageAction(formData: FormData): Promise<{
 
   const file = formData.get("file") as File | null;
   const type = formData.get("type") as ImageUploadType | null;
+  const cardId = formData.get("cardId");
 
-  if (!file || !type || (type !== "avatar" && type !== "banner")) {
+  if (!file || typeof cardId !== "string" || !cardId || !type || (type !== "avatar" && type !== "banner")) {
     return { error: t.actions.invalidFile };
   }
 
   // Obtener la tarjeta del usuario autenticado
-  const card = await prisma.card.findUnique({
-    where: { userId: sessionUser.id },
+  const card = await prisma.card.findFirst({
+    where: { id: cardId, userId: sessionUser.id },
     include: { content: true },
   });
 
@@ -309,15 +363,15 @@ export async function uploadCardImageAction(formData: FormData): Promise<{
 /**
  * Elimina la imagen de avatar o banner del usuario actual
  */
-export async function deleteCardImageAction(type: ImageUploadType): Promise<{
+export async function deleteCardImageAction(cardId: string, type: ImageUploadType): Promise<{
   success?: boolean;
   error?: string;
 }> {
   const sessionUser = await requireSession();
   const { t } = await getI18n();
 
-  const card = await prisma.card.findUnique({
-    where: { userId: sessionUser.id },
+  const card = await prisma.card.findFirst({
+    where: { id: cardId, userId: sessionUser.id },
     include: { content: true },
   });
 
