@@ -14,6 +14,8 @@ interface ActionButtonsProps {
   allowPublicWallet?: boolean;
   isOwner?: boolean;
   primaryColor?: string;
+  /** "light" para tarjetas con fondo claro. */
+  tone?: "dark" | "light";
 }
 
 export default function CardActionButtons({
@@ -24,6 +26,7 @@ export default function CardActionButtons({
   allowPublicWallet = true,
   isOwner = false,
   primaryColor = "#0D4F52",
+  tone = "dark",
 }: ActionButtonsProps) {
   const { t } = useI18n();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -133,7 +136,11 @@ export default function CardActionButtons({
       <button
         type="button"
         onClick={handleShare}
-        className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/10 px-3 py-2.5 text-xs font-medium text-cal transition-all hover:bg-white/15 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+        className={`flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-medium transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 ${
+          tone === "light"
+            ? "border-basalto/15 bg-basalto/5 text-basalto hover:bg-basalto/10 focus-visible:ring-basalto/60"
+            : "border-white/10 bg-white/10 text-cal hover:bg-white/15 focus-visible:ring-white/80"
+        }`}
       >
         <svg
           className="w-3.5 h-3.5"

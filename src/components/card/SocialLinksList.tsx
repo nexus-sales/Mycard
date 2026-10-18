@@ -13,6 +13,8 @@ interface SocialLinkItem {
 interface SocialLinksListProps {
   links: SocialLinkItem[];
   accentColor?: string;
+  /** "light" para tarjetas con fondo claro. */
+  tone?: "dark" | "light";
 }
 
 // Iconos SVG seguros para plataformas habituales
@@ -63,7 +65,7 @@ function PlatformIcon({ platform }: { platform: string }) {
   );
 }
 
-export default function SocialLinksList({ links, accentColor }: SocialLinksListProps) {
+export default function SocialLinksList({ links, accentColor, tone = "dark" }: SocialLinksListProps) {
   const { t } = useI18n();
   if (!links || links.length === 0) return null;
 
@@ -82,7 +84,11 @@ export default function SocialLinksList({ links, accentColor }: SocialLinksListP
             title={item.platform}
             aria-label={fmt(t.card.openSocial, { platform: item.platform })}
             style={accentColor ? { borderColor: `${accentColor}40` } : undefined}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-white/10 bg-white/10 p-2.5 text-cal shadow-sm transition-all hover:scale-105 hover:bg-white/20 hover:text-cal active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border p-2.5 shadow-sm transition-all hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 ${
+              tone === "light"
+                ? "border-basalto/15 bg-basalto/5 text-basalto hover:bg-basalto/10 focus-visible:ring-basalto/60"
+                : "border-white/10 bg-white/10 text-cal hover:bg-white/20 focus-visible:ring-white/80"
+            }`}
           >
             <PlatformIcon platform={item.platform} />
             <span className="sr-only">{item.platform}</span>

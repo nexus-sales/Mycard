@@ -7,13 +7,14 @@ import { createCardAction, deleteCardAction } from "@/lib/actions/card";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/config";
 import { readableTextColor } from "@/lib/qr";
+import type { CardTemplateType } from "@/lib/validations";
 
 export interface CardSummary {
   id: string;
   slug: string;
   active: boolean;
   views: number;
-  template: "MINIMAL" | "MODERN" | "CLASSIC";
+  template: CardTemplateType;
   name: string;
   jobTitle: string;
   company: string;

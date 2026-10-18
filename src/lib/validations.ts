@@ -82,7 +82,7 @@ export const createInviteSchema = z.object({
 // ─────────────────────────────────────────────
 // Theme y Plantilla
 // ─────────────────────────────────────────────
-export const cardTemplateSchema = z.enum(["MINIMAL", "MODERN", "CLASSIC"]);
+export const cardTemplateSchema = z.enum(["MINIMAL", "MODERN", "CLASSIC", "LIGHT", "BOLD", "EDITORIAL"]);
 export type CardTemplateType = z.infer<typeof cardTemplateSchema>;
 
 export const hexColorRegex = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;

@@ -6,6 +6,7 @@ import {
   cardContentUpdateSchema,
   cardSettingsUpdateSchema,
   defaultTheme,
+  type CardTemplateType,
 } from "@/lib/validations";
 import { processAndSaveImage, deleteOldImage, ImageUploadType, UploadError } from "@/lib/upload";
 import { syncGenericObjectToGoogle } from "@/lib/wallet";
@@ -137,7 +138,7 @@ export async function updateCardAction(
   payload: {
     settings: {
       slug: string;
-      template: "MINIMAL" | "MODERN" | "CLASSIC";
+      template: CardTemplateType;
       theme: Record<string, unknown>;
       active: boolean;
       allowPublicWallet: boolean;

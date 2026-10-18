@@ -23,6 +23,9 @@ enum CardTemplate {
   MINIMAL
   MODERN
   CLASSIC
+  LIGHT
+  BOLD
+  EDITORIAL
 }
 
 // ─────────────────────────────────────────────

@@ -1,13 +1,16 @@
 import React from "react";
-import { CardTheme, defaultTheme } from "@/lib/validations";
+import { CardTheme, CardTemplateType, defaultTheme } from "@/lib/validations";
 import MinimalTemplate from "./templates/MinimalTemplate";
 import ExecutiveTemplate from "./templates/ExecutiveTemplate";
 import CreativeTemplate from "./templates/CreativeTemplate";
+import LightTemplate from "./templates/LightTemplate";
+import BoldTemplate from "./templates/BoldTemplate";
+import EditorialTemplate from "./templates/EditorialTemplate";
 
 export interface CardViewProps {
   card: {
     slug: string;
-    template: "MINIMAL" | "MODERN" | "CLASSIC";
+    template: CardTemplateType;
     theme: unknown;
     active: boolean;
     allowPublicWallet?: boolean;
@@ -44,7 +47,15 @@ export default function CardView({ card, content, shareUrl, isOwner }: CardViewP
 
   const vcardUrl = `/c/${card.slug}/vcard`;
 
+  const templateProps = { card, content, theme, shareUrl, vcardUrl, isOwner };
+
   switch (card.template) {
+    case "LIGHT":
+      return <LightTemplate {...templateProps} />;
+    case "BOLD":
+      return <BoldTemplate {...templateProps} />;
+    case "EDITORIAL":
+      return <EditorialTemplate {...templateProps} />;
     case "CLASSIC":
       return (
         <ExecutiveTemplate

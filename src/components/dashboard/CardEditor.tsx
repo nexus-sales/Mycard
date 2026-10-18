@@ -333,11 +333,14 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
               <label className="block text-xs font-medium text-ink-2 mb-2">
                 {t.editor.chooseTemplate}
               </label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[
                   { id: "MINIMAL", ...t.editor.templates.MINIMAL },
                   { id: "CLASSIC", ...t.editor.templates.CLASSIC },
                   { id: "MODERN", ...t.editor.templates.MODERN },
+                  { id: "LIGHT", ...t.editor.templates.LIGHT },
+                  { id: "BOLD", ...t.editor.templates.BOLD },
+                  { id: "EDITORIAL", ...t.editor.templates.EDITORIAL },
                 ].map((tpl) => (
                   <button
                     key={tpl.id}
