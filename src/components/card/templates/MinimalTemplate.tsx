@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import { useI18n } from "@/lib/i18n/client";
 import Image from "next/image";
 import { CardTheme, sanitizeExternalUrl, sanitizeMailtoUrl, sanitizeTelUrl } from "@/lib/validations";
 import SocialLinksList from "../SocialLinksList";
@@ -33,6 +36,7 @@ interface TemplateProps {
 }
 
 export default function MinimalTemplate({ card, content, theme, shareUrl, vcardUrl, isOwner }: TemplateProps) {
+  const { t } = useI18n();
   const fontClass =
     theme.fontFamily === "serif"
       ? "font-serif"
@@ -46,7 +50,7 @@ export default function MinimalTemplate({ card, content, theme, shareUrl, vcardU
 
   return (
     <div className={`w-full max-w-sm mx-auto p-4 sm:p-6 ${fontClass}`}>
-      <div className="bg-slate-900/90 text-slate-100 rounded-3xl border border-slate-800 p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden space-y-6">
+      <div className="bg-basalto/90 text-cal rounded-3xl border border-cal/10 p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden space-y-6">
         {/* Glow de acento superior */}
         <div
           className="absolute -top-24 -left-24 w-48 h-48 rounded-full blur-3xl opacity-30 pointer-events-none"
@@ -55,7 +59,7 @@ export default function MinimalTemplate({ card, content, theme, shareUrl, vcardU
 
         {/* Avatar */}
         <div className="flex flex-col items-center text-center space-y-3">
-          <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 shadow-lg bg-slate-800" style={{ borderColor: theme.primaryColor }}>
+          <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 shadow-lg bg-picon" style={{ borderColor: theme.primaryColor }}>
             {content.avatarPath ? (
               <Image
                 src={content.avatarPath}
@@ -66,16 +70,16 @@ export default function MinimalTemplate({ card, content, theme, shareUrl, vcardU
                 priority
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-slate-400">
+              <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-cal/70">
                 {content.name.slice(0, 2).toUpperCase() || "MC"}
               </div>
             )}
           </div>
 
           <div>
-            <h1 className="text-xl font-bold text-white tracking-tight">{content.name}</h1>
+            <h1 className="text-xl font-bold text-cal tracking-tight">{content.name}</h1>
             {(content.jobTitle || content.company) && (
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-cal/70 mt-0.5">
                 {content.jobTitle}
                 {content.jobTitle && content.company && " · "}
                 {content.company}
@@ -84,17 +88,17 @@ export default function MinimalTemplate({ card, content, theme, shareUrl, vcardU
           </div>
 
           {content.bio && (
-            <p className="text-xs text-slate-300/90 max-w-xs leading-relaxed italic">
+            <p className="text-xs text-cal/90 max-w-xs leading-relaxed italic">
               &ldquo;{content.bio}&rdquo;
             </p>
           )}
         </div>
 
         {/* Datos de contacto visibles */}
-        <div className="space-y-2 text-xs divide-y divide-slate-800/80">
+        <div className="space-y-2 text-xs divide-y divide-cal/10">
           {content.showEmail && content.email && safeEmail && (
             <div className="pt-2 flex items-center justify-between">
-              <span className="text-slate-400">Email</span>
+              <span className="text-cal/70">{t.card.email}</span>
               <a
                 href={safeEmail}
                 className="font-medium hover:underline truncate max-w-[200px]"
@@ -107,7 +111,7 @@ export default function MinimalTemplate({ card, content, theme, shareUrl, vcardU
 
           {content.showPhone && content.phone && safePhone && (
             <div className="pt-2 flex items-center justify-between">
-              <span className="text-slate-400">Teléfono</span>
+              <span className="text-cal/70">{t.card.phone}</span>
               <a
                 href={safePhone}
                 className="font-medium hover:underline"
@@ -120,7 +124,7 @@ export default function MinimalTemplate({ card, content, theme, shareUrl, vcardU
 
           {safeWebsite && (
             <div className="pt-2 flex items-center justify-between">
-              <span className="text-slate-400">Web</span>
+              <span className="text-cal/70">{t.card.web}</span>
               <a
                 href={safeWebsite}
                 target="_blank"
@@ -135,8 +139,8 @@ export default function MinimalTemplate({ card, content, theme, shareUrl, vcardU
 
           {content.showAddress && content.address && (
             <div className="pt-2 flex items-start justify-between gap-4">
-              <span className="text-slate-400 shrink-0">Dirección</span>
-              <span className="text-slate-300 text-right">{content.address}</span>
+              <span className="text-cal/70 shrink-0">{t.card.address}</span>
+              <span className="text-cal/90 text-right">{content.address}</span>
             </div>
           )}
         </div>

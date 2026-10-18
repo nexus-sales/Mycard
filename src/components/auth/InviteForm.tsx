@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { registerWithInviteAction } from "@/lib/actions/invite";
+import { useI18n } from "@/lib/i18n/client";
 
 type FieldErrors = Partial<Record<string, string[]>>;
 type State =
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function InviteForm({ inviteToken, prefilledEmail }: Props) {
+  const { t } = useI18n();
   const action = async (_prev: State, formData: FormData) =>
     registerWithInviteAction(inviteToken, formData);
 
@@ -27,12 +29,12 @@ export default function InviteForm({ inviteToken, prefilledEmail }: Props) {
   return (
     <form
       action={formAction}
-      className="space-y-5 rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-8"
+      className="space-y-5 rounded-2xl border border-ink/15 bg-paper-2/90 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-8"
     >
       {state?.error && (
         <div
           role="alert"
-          className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"
+          className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-300"
         >
           {state.error}
         </div>
@@ -43,7 +45,7 @@ export default function InviteForm({ inviteToken, prefilledEmail }: Props) {
         <Field
           id="email"
           name="email"
-          label="Email"
+          label={t.auth.email}
           type="email"
           autoComplete="email"
           required
@@ -54,7 +56,7 @@ export default function InviteForm({ inviteToken, prefilledEmail }: Props) {
       <Field
         id="name"
         name="name"
-        label="Nombre completo"
+        label={t.invite.fullName}
         autoComplete="name"
         required
         error={fe.name?.[0]}
@@ -63,9 +65,9 @@ export default function InviteForm({ inviteToken, prefilledEmail }: Props) {
       <Field
         id="slug"
         name="slug"
-        label="Slug de tu tarjeta"
-        placeholder="ej: juan-garcia"
-        hint="Solo minúsculas, números y guiones. Mínimo 3 caracteres."
+        label={t.invite.slug}
+        placeholder={t.invite.slugPlaceholder}
+        hint={t.invite.slugHint}
         required
         error={fe.slug?.[0]}
       />
@@ -73,10 +75,10 @@ export default function InviteForm({ inviteToken, prefilledEmail }: Props) {
       <Field
         id="password"
         name="password"
-        label="Contraseña"
+        label={t.auth.password}
         type="password"
         autoComplete="new-password"
-        hint="Mínimo 12 caracteres."
+        hint={t.invite.passwordHint}
         required
         error={fe.password?.[0]}
       />
@@ -84,7 +86,7 @@ export default function InviteForm({ inviteToken, prefilledEmail }: Props) {
       <Field
         id="confirmPassword"
         name="confirmPassword"
-        label="Confirmar contraseña"
+        label={t.invite.confirmPassword}
         type="password"
         autoComplete="new-password"
         required
@@ -94,9 +96,9 @@ export default function InviteForm({ inviteToken, prefilledEmail }: Props) {
       <button
         type="submit"
         disabled={isPending}
-        className="min-h-12 w-full rounded-xl bg-indigo-600 px-4 text-sm font-bold text-white shadow-lg shadow-indigo-950/40 transition-colors hover:bg-indigo-500 disabled:opacity-60"
+        className="min-h-12 w-full rounded-xl bg-voltio px-4 text-sm font-bold text-basalto shadow-lg shadow-basalto/20 transition-colors hover:bg-voltio/90 disabled:opacity-60"
       >
-        {isPending ? "Creando cuenta…" : "Crear cuenta"}
+        {isPending ? t.invite.submitting : t.invite.submit}
       </button>
     </form>
   );
@@ -116,16 +118,16 @@ function Field({ id, label, hint, error, ...inputProps }: FieldProps) {
     <div>
       <label
         htmlFor={id}
-        className="mb-1.5 block text-sm font-medium text-slate-300"
+        className="mb-1.5 block text-sm font-medium text-ink-2"
       >
         {label}
       </label>
       <input
         id={id}
-        className={`min-h-11 w-full rounded-xl border bg-slate-950/70 px-3 text-sm text-white outline-none transition focus:ring-2 focus:ring-indigo-500/30 ${
+        className={`min-h-11 w-full rounded-xl border bg-paper/70 px-3 text-sm text-ink outline-none transition focus:ring-2 focus:ring-sea/30 ${
           error
             ? "border-rose-500 focus:border-rose-500"
-            : "border-slate-700 focus:border-indigo-500"
+            : "border-ink/15 focus:border-sea"
         }`}
         aria-describedby={hint || error ? `${id}-hint` : undefined}
         aria-invalid={!!error}
@@ -134,7 +136,7 @@ function Field({ id, label, hint, error, ...inputProps }: FieldProps) {
       {(error || hint) && (
         <p
           id={`${id}-hint`}
-          className={`mt-1.5 text-xs ${error ? "text-rose-300" : "text-slate-500"}`}
+          className={`mt-1.5 text-xs ${error ? "text-rose-700 dark:text-rose-300" : "text-ink-3"}`}
         >
           {error ?? hint}
         </p>

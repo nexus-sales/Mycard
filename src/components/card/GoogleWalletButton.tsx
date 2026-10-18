@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/client";
 
 interface GoogleWalletButtonProps {
   slug?: string;
@@ -17,6 +18,7 @@ export default function GoogleWalletButton({
   isOwner = false,
   className = "",
 }: GoogleWalletButtonProps) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -45,14 +47,14 @@ export default function GoogleWalletButton({
         if (data.url) {
           window.open(data.url, "_blank", "noopener,noreferrer");
         } else {
-          showError(data.error || "No se pudo generar el pase.");
+          showError(data.error || t.wallet.cannotGenerate);
         }
       } else if (slug) {
         // Redirigir directamente al endpoint público de Wallet
         window.location.href = targetUrl;
       }
     } catch {
-      showError("Error conectando con Google Wallet.");
+      showError(t.wallet.connectError);
     } finally {
       setLoading(false);
     }
@@ -64,7 +66,7 @@ export default function GoogleWalletButton({
       {toast && (
         <div
           aria-hidden="true"
-          className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 px-3 py-1.5 rounded-lg bg-slate-900 text-rose-300 text-xs font-medium border border-rose-500/30 shadow-lg whitespace-nowrap"
+          className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 px-3 py-1.5 rounded-lg bg-basalto text-rose-300 text-xs font-medium border border-rose-500/30 shadow-lg whitespace-nowrap"
         >
           {toast}
         </div>
@@ -74,8 +76,8 @@ export default function GoogleWalletButton({
         type="button"
         onClick={handleClick}
         disabled={loading}
-        title="Añadir a Google Wallet"
-        className={`flex min-h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-neutral-700/80 bg-black px-4 text-xs font-medium text-white shadow-md transition-all hover:bg-neutral-900 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 ${
+        title={t.wallet.button}
+        className={`flex min-h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-neutral-700/80 bg-black px-4 text-xs font-medium text-cal shadow-md transition-all hover:bg-neutral-900 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 ${
           loading ? "opacity-70 pointer-events-none" : ""
         } ${className}`}
       >
@@ -97,8 +99,8 @@ export default function GoogleWalletButton({
           />
         </svg>
 
-        <span className="tracking-tight text-white/95 font-semibold text-[13px]">
-          {loading ? "Generando pase…" : "Añadir a Google Wallet"}
+        <span className="tracking-tight text-cal font-semibold text-[13px]">
+          {loading ? t.wallet.generating : t.wallet.button}
         </span>
       </button>
     </div>

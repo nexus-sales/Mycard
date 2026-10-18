@@ -46,10 +46,10 @@ export default function ExecutiveTemplate({ card, content, theme, shareUrl, vcar
 
   return (
     <div className={`w-full max-w-sm mx-auto p-4 sm:p-6 ${fontClass}`}>
-      <div className="bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden text-slate-100">
+      <div className="bg-basalto border border-cal/10 rounded-2xl shadow-2xl overflow-hidden text-cal">
         {/* Banner o cabecera ejecutiva */}
         <div
-          className="h-28 w-full relative bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700/60"
+          className="h-28 w-full relative bg-gradient-to-r from-picon to-basalto border-b border-cal/10"
           style={{
             backgroundImage: content.bannerPath ? `url(${content.bannerPath})` : undefined,
             backgroundSize: "cover",
@@ -67,7 +67,7 @@ export default function ExecutiveTemplate({ card, content, theme, shareUrl, vcar
         <div className="px-6 pb-6 pt-0 relative space-y-5">
           {/* Avatar sobrepuesto */}
           <div className="flex justify-between items-end -mt-12 mb-3">
-            <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-slate-900 shadow-xl bg-slate-800">
+            <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-basalto shadow-xl bg-picon">
               {content.avatarPath ? (
                 <Image
                   src={content.avatarPath}
@@ -78,14 +78,14 @@ export default function ExecutiveTemplate({ card, content, theme, shareUrl, vcar
                   priority
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-xl font-bold text-slate-400">
+                <div className="w-full h-full flex items-center justify-center text-xl font-bold text-cal/70">
                   {content.name.slice(0, 2).toUpperCase() || "EX"}
                 </div>
               )}
             </div>
 
             {content.company && (
-              <span className="text-xs px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700 font-medium">
+              <span className="text-xs px-2.5 py-1 rounded-md bg-picon text-cal/90 border border-cal/10 font-medium">
                 {content.company}
               </span>
             )}
@@ -93,7 +93,7 @@ export default function ExecutiveTemplate({ card, content, theme, shareUrl, vcar
 
           {/* Nombre y Título */}
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white">{content.name}</h1>
+            <h1 className="text-xl font-bold tracking-tight text-cal">{content.name}</h1>
             {content.jobTitle && (
               <p className="text-sm font-medium mt-0.5" style={{ color: theme.accentColor }}>
                 {content.jobTitle}
@@ -102,7 +102,7 @@ export default function ExecutiveTemplate({ card, content, theme, shareUrl, vcar
           </div>
 
           {content.bio && (
-            <p className="text-xs text-slate-300 leading-relaxed border-l-2 pl-3 border-slate-700">
+            <p className="text-xs text-cal/90 leading-relaxed border-l-2 pl-3 border-cal/10">
               {content.bio}
             </p>
           )}
@@ -112,7 +112,7 @@ export default function ExecutiveTemplate({ card, content, theme, shareUrl, vcar
             {content.showEmail && content.email && safeEmail && (
               <a
                 href={safeEmail}
-                className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 transition-colors text-xs text-slate-200"
+                className="flex items-center gap-3 p-2.5 rounded-xl bg-picon/80 hover:bg-picon border border-cal/10 transition-colors text-xs text-cal"
               >
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
@@ -129,7 +129,7 @@ export default function ExecutiveTemplate({ card, content, theme, shareUrl, vcar
             {content.showPhone && content.phone && safePhone && (
               <a
                 href={safePhone}
-                className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 transition-colors text-xs text-slate-200"
+                className="flex items-center gap-3 p-2.5 rounded-xl bg-picon/80 hover:bg-picon border border-cal/10 transition-colors text-xs text-cal"
               >
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
@@ -148,7 +148,7 @@ export default function ExecutiveTemplate({ card, content, theme, shareUrl, vcar
                 href={safeWebsite}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 transition-colors text-xs text-slate-200"
+                className="flex items-center gap-3 p-2.5 rounded-xl bg-picon/80 hover:bg-picon border border-cal/10 transition-colors text-xs text-cal"
               >
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
@@ -163,7 +163,7 @@ export default function ExecutiveTemplate({ card, content, theme, shareUrl, vcar
             )}
 
             {content.showAddress && content.address && (
-              <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300">
+              <div className="flex items-center gap-3 p-2.5 rounded-xl bg-picon/80 border border-cal/10 text-xs text-cal/90">
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                   style={{ backgroundColor: `${theme.primaryColor}25`, color: theme.primaryColor }}

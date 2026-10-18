@@ -1,32 +1,77 @@
 @import "tailwindcss";
 
+/*
+ * Paleta corporativa
+ * ──────────────────
+ * Colores fijos (no cambian con el modo oscuro): hero, pie, botones y plantillas de tarjeta.
+ *   basalto  #14100D  negro volcánico: fondos oscuros y texto principal
+ *   picon    #3A322B  marrón grisáceo: texto secundario
+ *   humo     #7A6E63  gris cálido: texto terciario y detalles
+ *   cal      #F0EDE6  blanco roto: fondo principal claro
+ *   cal-alt  #E3DFD5  variante más oscura: tarjetas y bordes
+ *   mar      #0D4F52  verde azulado: acento y hover
+ *   voltio   #FFC300  amarillo eléctrico: llamada a la acción
+ *
+ * Colores adaptativos (ink / paper / sea): sustituyen a los anteriores solo en textos y
+ * fondos generales cuando el sistema está en modo oscuro.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: Arial, Helvetica, sans-serif;
-  --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --ink: #14100d; /* basalto */
+  --ink-2: #3a322b; /* picón */
+  --ink-3: #7a6e63; /* humo */
+  --paper: #f0ede6; /* cal */
+  --paper-2: #e3dfd5; /* cal alt */
+  --sea: #0d4f52; /* mar */
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --ink: #f2eee6; /* basalto oscuro */
+    --ink-2: #c9c1b5; /* picón oscuro */
+    --ink-3: #9a8f80; /* humo oscuro */
+    --paper: #171310; /* cal oscuro */
+    --paper-2: #2a241e; /* cal alt oscuro */
+    --sea: #4fbfc2; /* mar oscuro */
+    color-scheme: dark;
   }
 }
 
+@theme inline {
+  /* Fijos */
+  --color-basalto: #14100d;
+  --color-picon: #3a322b;
+  --color-humo: #7a6e63;
+  --color-cal: #f0ede6;
+  --color-cal-alt: #e3dfd5;
+  --color-mar: #0d4f52;
+  --color-voltio: #ffc300;
+
+  /* Adaptativos */
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-sea: var(--sea);
+
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--font-sans);
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+::selection {
+  background: #ffc300;
+  color: #14100d;
 }
 
 button,

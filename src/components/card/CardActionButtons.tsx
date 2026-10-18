@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import GoogleWalletButton from "./GoogleWalletButton";
+import { useI18n } from "@/lib/i18n/client";
+import { fmt } from "@/lib/i18n/config";
 
 interface ActionButtonsProps {
   cardName: string;
@@ -20,8 +22,9 @@ export default function CardActionButtons({
   slug,
   allowPublicWallet = true,
   isOwner = false,
-  primaryColor = "#4f46e5",
+  primaryColor = "#0D4F52",
 }: ActionButtonsProps) {
+  const { t } = useI18n();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -57,8 +60,8 @@ export default function CardActionButtons({
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
-          title: `Tarjeta de ${cardName}`,
-          text: `Contacta con ${cardName} a través de su tarjeta digital:`,
+          title: fmt(t.card.shareTitle, { name: cardName }),
+          text: fmt(t.card.shareText, { name: cardName }),
           url: shareUrl,
         });
         return;
@@ -69,18 +72,18 @@ export default function CardActionButtons({
 
     try {
       await copyShareUrl();
-      showToast("Enlace copiado al portapapeles");
+      showToast(t.card.linkCopied);
     } catch {
-      showToast("No se pudo copiar el enlace.");
+      showToast(t.card.copyFailed);
     }
   };
 
   const handleSaveContact = () => {
     if (vcardUrl) {
-      showToast("Descargando contacto (.vcf)…");
+      showToast(t.card.downloadingVcard);
       window.location.href = vcardUrl;
     } else {
-      showToast("Vista previa: vCard disponible en tu enlace público");
+      showToast(t.card.vcardPreview);
     }
   };
 
@@ -91,7 +94,7 @@ export default function CardActionButtons({
       {toastMessage && (
         <div
           aria-hidden="true"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-900/90 text-white text-xs font-medium shadow-2xl backdrop-blur-md border border-slate-700 animate-fade-in"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-basalto/90 text-cal text-xs font-medium shadow-2xl backdrop-blur-md border border-cal/10 animate-fade-in"
         >
           {toastMessage}
         </div>
@@ -102,7 +105,7 @@ export default function CardActionButtons({
         type="button"
         onClick={handleSaveContact}
         style={{ backgroundColor: primaryColor }}
-        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-cal shadow-lg transition-all hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-basalto"
       >
         <svg
           className="w-4 h-4"
@@ -117,7 +120,7 @@ export default function CardActionButtons({
             d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8zm8-2v6m3-3h-6"
           />
         </svg>
-        Guardar contacto
+        {t.card.saveContact}
       </button>
 
       {/* Botón oficial de Google Wallet (solo si allowPublicWallet es true) */}
@@ -129,7 +132,7 @@ export default function CardActionButtons({
       <button
         type="button"
         onClick={handleShare}
-        className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/10 px-3 py-2.5 text-xs font-medium text-slate-100 transition-all hover:bg-white/15 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+        className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/10 px-3 py-2.5 text-xs font-medium text-cal transition-all hover:bg-white/15 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
       >
         <svg
           className="w-3.5 h-3.5"
@@ -144,7 +147,7 @@ export default function CardActionButtons({
             d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
           />
         </svg>
-        Compartir enlace
+        {t.card.shareLink}
       </button>
     </div>
   );

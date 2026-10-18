@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { generateGoogleWalletSaveUrl, WalletCardPayload } from "@/lib/wallet";
 import { extractClientIp } from "@/lib/ip";
+import { getI18n } from "@/lib/i18n/server";
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
@@ -13,6 +14,7 @@ export async function GET(
   { params }: RouteParams
 ): Promise<NextResponse> {
   const { slug } = await params;
+  const { t, locale } = await getI18n();
 
   // 1. Rate limiting en memoria para evitar abusos o ataques de denegación
   const clientIp = extractClientIp(request.headers);
@@ -24,7 +26,7 @@ export async function GET(
 
   if (!rl.allowed) {
     const retrySeconds = Math.max(1, Math.ceil((rl.resetAt - Date.now()) / 1000));
-    return new NextResponse("Demasiadas peticiones. Inténtalo más tarde.", {
+    return new NextResponse(t.wallet.tooMany, {
       status: 429,
       headers: { "Retry-After": retrySeconds.toString() },
     });
@@ -38,7 +40,7 @@ export async function GET(
 
   // Si no existe, no está activa o el dueño NO permite que otros la añadan a Wallet
   if (!card || !card.active || !card.allowPublicWallet || !card.content) {
-    return new NextResponse("Pase no disponible", { status: 404 });
+    return new NextResponse(t.wallet.passUnavailable, { status: 404 });
   }
 
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
@@ -55,7 +57,8 @@ export async function GET(
     avatarPath: card.content.avatarPath,
     showEmail: card.content.showEmail,
     showPhone: card.content.showPhone,
-    primaryColor: rawTheme.primaryColor || "#4f46e5",
+    primaryColor: rawTheme.primaryColor || "#0D4F52",
+    locale,
   };
 
   try {
@@ -63,7 +66,7 @@ export async function GET(
     return NextResponse.redirect(saveUrl);
   } catch (err: unknown) {
     console.error("Error generando enlace de Google Wallet público:", err);
-    return new NextResponse("El servicio de Google Wallet no está disponible en este momento.", {
+    return new NextResponse(t.wallet.unavailable, {
       status: 503,
     });
   }

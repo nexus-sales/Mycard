@@ -7,9 +7,12 @@ import {
   cardSettingsUpdateSchema,
   defaultTheme,
 } from "@/lib/validations";
-import { processAndSaveImage, deleteOldImage, ImageUploadType } from "@/lib/upload";
+import { processAndSaveImage, deleteOldImage, ImageUploadType, UploadError } from "@/lib/upload";
 import { syncGenericObjectToGoogle } from "@/lib/wallet";
 import { revalidatePath } from "next/cache";
+import { getI18n } from "@/lib/i18n/server";
+import { fmt } from "@/lib/i18n/config";
+import { translateFieldErrors } from "@/lib/i18n/dictionaries";
 
 /**
  * Obtiene la tarjeta del usuario actual, o la inicializa si no existe aún.
@@ -103,13 +106,14 @@ export async function updateCardAction(
   }
 ): Promise<UpdateCardResult> {
   const sessionUser = await requireSession();
+  const { t, locale } = await getI18n();
 
   // Validar datos de configuración de tarjeta
   const parsedSettings = cardSettingsUpdateSchema.safeParse(payload.settings);
   if (!parsedSettings.success) {
     return {
-      error: "Datos de configuración inválidos",
-      fieldErrors: parsedSettings.error.flatten().fieldErrors,
+      error: t.actions.invalidSettings,
+      fieldErrors: translateFieldErrors(t, parsedSettings.error.flatten().fieldErrors),
     };
   }
 
@@ -117,8 +121,8 @@ export async function updateCardAction(
   const parsedContent = cardContentUpdateSchema.safeParse(payload.content);
   if (!parsedContent.success) {
     return {
-      error: "Datos de perfil inválidos",
-      fieldErrors: parsedContent.error.flatten().fieldErrors,
+      error: t.actions.invalidProfile,
+      fieldErrors: translateFieldErrors(t, parsedContent.error.flatten().fieldErrors),
     };
   }
 
@@ -128,7 +132,7 @@ export async function updateCardAction(
   });
 
   if (!currentCard) {
-    return { error: "Tarjeta no encontrada para tu usuario." };
+    return { error: t.actions.cardNotFoundForUser };
   }
 
   // Si el slug ha cambiado, verificar que no esté ocupado por otro usuario
@@ -142,8 +146,8 @@ export async function updateCardAction(
 
     if (slugCollision) {
       return {
-        error: "Ese enlace (slug) ya está en uso. Por favor elige otro.",
-        fieldErrors: { slug: ["Slug ya ocupado"] },
+        error: t.actions.slugTaken,
+        fieldErrors: { slug: [t.actions.slugTakenField] },
       };
     }
   }
@@ -192,7 +196,8 @@ export async function updateCardAction(
           avatarPath: updatedCard.content?.avatarPath,
           showEmail: parsedContent.data.showEmail,
           showPhone: parsedContent.data.showPhone,
-          primaryColor: rawTheme.primaryColor || "#4f46e5",
+          primaryColor: rawTheme.primaryColor || "#0D4F52",
+          locale,
         },
         appUrl
       );
@@ -212,7 +217,8 @@ export async function updateCardAction(
             avatarPath: updatedCard.content?.avatarPath,
             showEmail: parsedContent.data.showEmail,
             showPhone: parsedContent.data.showPhone,
-            primaryColor: rawTheme.primaryColor || "#4f46e5",
+            primaryColor: rawTheme.primaryColor || "#0D4F52",
+            locale,
           },
           appUrl
         ).catch(() => {});
@@ -241,12 +247,13 @@ export async function uploadCardImageAction(formData: FormData): Promise<{
   error?: string;
 }> {
   const sessionUser = await requireSession();
+  const { t } = await getI18n();
 
   const file = formData.get("file") as File | null;
   const type = formData.get("type") as ImageUploadType | null;
 
   if (!file || !type || (type !== "avatar" && type !== "banner")) {
-    return { error: "Archivo o tipo de imagen inválido." };
+    return { error: t.actions.invalidFile };
   }
 
   // Obtener la tarjeta del usuario autenticado
@@ -256,7 +263,7 @@ export async function uploadCardImageAction(formData: FormData): Promise<{
   });
 
   if (!card) {
-    return { error: "No tienes una tarjeta asignada." };
+    return { error: t.actions.noCard };
   }
 
   try {
@@ -286,9 +293,16 @@ export async function uploadCardImageAction(formData: FormData): Promise<{
     return { success: true, publicPath };
   } catch (err: unknown) {
     console.error("Error subiendo imagen:", err);
-    return {
-      error: err instanceof Error ? err.message : "Error al procesar la imagen.",
-    };
+    if (err instanceof UploadError) {
+      const messages = {
+        tooLarge: fmt(t.actions.uploadTooLarge, { mb: err.params.mb ?? 0 }),
+        badFormat: t.actions.uploadBadFormat,
+        corrupt: t.actions.uploadCorrupt,
+        unsupported: t.actions.uploadUnsupported,
+      };
+      return { error: messages[err.code] };
+    }
+    return { error: t.actions.imageProcessing };
   }
 }
 
@@ -300,6 +314,7 @@ export async function deleteCardImageAction(type: ImageUploadType): Promise<{
   error?: string;
 }> {
   const sessionUser = await requireSession();
+  const { t } = await getI18n();
 
   const card = await prisma.card.findUnique({
     where: { userId: sessionUser.id },
@@ -307,7 +322,7 @@ export async function deleteCardImageAction(type: ImageUploadType): Promise<{
   });
 
   if (!card || !card.content) {
-    return { error: "Tarjeta no encontrada." };
+    return { error: t.actions.cardNotFound };
   }
 
   const previousPath =

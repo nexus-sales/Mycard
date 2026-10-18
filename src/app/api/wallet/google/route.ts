@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { generateGoogleWalletSaveUrl, WalletCardPayload } from "@/lib/wallet";
+import { getI18n } from "@/lib/i18n/server";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  const { t, locale } = await getI18n();
   const sessionUser = await getSession();
   if (!sessionUser) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    return NextResponse.json({ error: t.wallet.unauthorized }, { status: 401 });
   }
 
   // El usuario únicamente puede generar el pase de SU PROPIA tarjeta
@@ -17,7 +19,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   if (!card || !card.content) {
     return NextResponse.json(
-      { error: "Tarjeta no encontrada para tu usuario" },
+      { error: t.wallet.cardNotFound },
       { status: 404 }
     );
   }
@@ -36,7 +38,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     avatarPath: card.content.avatarPath,
     showEmail: card.content.showEmail,
     showPhone: card.content.showPhone,
-    primaryColor: rawTheme.primaryColor || "#4f46e5",
+    primaryColor: rawTheme.primaryColor || "#0D4F52",
+    locale,
   };
 
   try {
@@ -52,7 +55,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (err: unknown) {
     console.error("Error en GET /api/wallet/google:", err);
     return NextResponse.json(
-      { error: "No se pudo generar el pase de Google Wallet en este momento." },
+      { error: t.wallet.serverError },
       { status: 500 }
     );
   }

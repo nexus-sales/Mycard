@@ -13,6 +13,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { extractClientIp } from "@/lib/ip";
+import { getI18n } from "@/lib/i18n/server";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 // ─────────────────────────────────────────────
 // Helpers
@@ -25,8 +27,8 @@ async function getClientIp(): Promise<string> {
 }
 
 /** Respuesta de error genérica */
-function authError() {
-  return { error: "Email o contraseña incorrectos" };
+function authError(t: Dictionary) {
+  return { error: t.auth.invalidCredentials };
 }
 
 // ─────────────────────────────────────────────
@@ -37,12 +39,13 @@ export async function loginAction(
   formData: FormData
 ) {
   const ip = await getClientIp();
+  const { t } = await getI18n();
 
   // Rate limiting
   const rl = rateLimit(`login:${ip}`, RATE_LIMITS.login);
   if (!rl.allowed) {
     return {
-      error: "Demasiados intentos. Inténtalo de nuevo en unos minutos.",
+      error: t.auth.tooManyLogin,
     };
   }
 
@@ -52,7 +55,7 @@ export async function loginAction(
     password: formData.get("password"),
   });
   if (!parsed.success) {
-    return authError(); // Mensaje genérico — no revelar qué falló
+    return authError(t); // Mensaje genérico — no revelar qué falló
   }
 
   const { email, password } = parsed.data;
@@ -66,7 +69,7 @@ export async function loginAction(
       "$argon2id$v=19$m=65536,t=3,p=4$placeholder$placeholder",
       password
     ).catch(() => {});
-    return authError();
+    return authError(t);
   }
 
   // Verificar contraseña
@@ -74,10 +77,10 @@ export async function loginAction(
   try {
     valid = await argon2.verify(user.passwordHash, password);
   } catch {
-    return authError();
+    return authError(t);
   }
 
-  if (!valid) return authError();
+  if (!valid) return authError(t);
 
   // Regenerar sesión (prevenir session fixation)
   const token = await regenerateSession(user.id);

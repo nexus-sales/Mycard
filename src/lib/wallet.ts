@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import { dictionaries } from "@/lib/i18n/dictionaries";
+import type { Locale } from "@/lib/i18n/config";
 
 interface GoogleServiceAccount {
   client_email: string;
@@ -18,6 +20,8 @@ export interface WalletCardPayload {
   showEmail: boolean;
   showPhone: boolean;
   primaryColor?: string;
+  /** Idioma de los textos del pase (por defecto español). */
+  locale?: Locale;
 }
 
 /**
@@ -124,12 +128,14 @@ export function buildGenericObjectPayload(
   const classId = getGenericClassId(issuerId);
   const objectId = getGenericObjectId(issuerId, card.cardId);
 
+  const locale: Locale = card.locale ?? "es";
+  const w = dictionaries[locale].wallet;
   const textModulesData: Array<{ id: string; header: string; body: string }> = [];
 
   if (card.jobTitle?.trim()) {
     textModulesData.push({
       id: "jobTitle",
-      header: "CARGO",
+      header: w.labelJobTitle,
       body: card.jobTitle.trim(),
     });
   }
@@ -137,7 +143,7 @@ export function buildGenericObjectPayload(
   if (card.company?.trim()) {
     textModulesData.push({
       id: "company",
-      header: "EMPRESA",
+      header: w.labelCompany,
       body: card.company.trim(),
     });
   }
@@ -145,7 +151,7 @@ export function buildGenericObjectPayload(
   if (card.showEmail && card.email?.trim()) {
     textModulesData.push({
       id: "email",
-      header: "EMAIL",
+      header: w.labelEmail,
       body: card.email.trim(),
     });
   }
@@ -153,7 +159,7 @@ export function buildGenericObjectPayload(
   if (card.showPhone && card.phone?.trim()) {
     textModulesData.push({
       id: "phone",
-      header: "TELÉFONO",
+      header: w.labelPhone,
       body: card.phone.trim(),
     });
   }
@@ -169,20 +175,20 @@ export function buildGenericObjectPayload(
       ? {
           sourceUri: { uri: logoUri },
           contentDescription: {
-            defaultValue: { language: "es", value: card.name },
+            defaultValue: { language: locale, value: card.name },
           },
         }
       : undefined,
     cardTitle: {
-      defaultValue: { language: "es", value: "Tarjeta de Contacto Digital" },
+      defaultValue: { language: locale, value: w.passTitle },
     },
     header: {
-      defaultValue: { language: "es", value: card.name },
+      defaultValue: { language: locale, value: card.name },
     },
     subheader: card.company
-      ? { defaultValue: { language: "es", value: card.company } }
+      ? { defaultValue: { language: locale, value: card.company } }
       : undefined,
-    hexBackgroundColor: card.primaryColor || "#4f46e5",
+    hexBackgroundColor: card.primaryColor || "#0D4F52",
     textModulesData: textModulesData.length > 0 ? textModulesData : undefined,
     barcode: {
       type: "QR_CODE",
@@ -193,7 +199,7 @@ export function buildGenericObjectPayload(
       uris: [
         {
           uri: `${appUrl}/c/${card.slug}`,
-          description: "Abrir tarjeta digital completa",
+          description: w.openFullCard,
         },
       ],
     },

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { generateVCardString } from "@/lib/vcard";
 import { extractClientIp } from "@/lib/ip";
+import { getI18n } from "@/lib/i18n/server";
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
@@ -20,7 +21,7 @@ export async function GET(
   const rl = rateLimit(`vcard:${clientIp}`, RATE_LIMITS.vcard);
   if (!rl.allowed) {
     const retrySeconds = Math.max(1, Math.ceil((rl.resetAt - Date.now()) / 1000));
-    return new NextResponse("Demasiadas descargas. Inténtalo más tarde.", {
+    return new NextResponse((await getI18n()).t.vcard.tooMany, {
       status: 429,
       headers: {
         "Retry-After": retrySeconds.toString(),

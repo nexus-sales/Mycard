@@ -2,6 +2,9 @@ import { z } from "zod";
 
 // ─────────────────────────────────────────────
 // Slugs
+//
+// Los mensajes de error son CLAVES de i18n (ver lib/i18n/dictionaries.ts › validation);
+// las acciones de servidor las traducen con translateValidation().
 // ─────────────────────────────────────────────
 export const RESERVED_SLUGS = new Set([
   "admin",
@@ -24,36 +27,36 @@ export const RESERVED_SLUGS = new Set([
 
 export const slugSchema = z
   .string()
-  .min(3, "El slug debe tener al menos 3 caracteres")
-  .max(32, "El slug no puede superar 32 caracteres")
+  .min(3, "slugMin")
+  .max(32, "slugMax")
   .regex(
     /^[a-z0-9][a-z0-9-]*[a-z0-9]$/,
-    "Solo minúsculas, números y guiones (no puede empezar ni terminar con guión)"
+    "slugFormat"
   )
   .refine((s) => !RESERVED_SLUGS.has(s), {
-    message: "Este slug está reservado, elige otro",
+    message: "slugReserved",
   });
 
 // ─────────────────────────────────────────────
 // Auth
 // ─────────────────────────────────────────────
 export const loginSchema = z.object({
-  email: z.string().trim().toLowerCase().email("Email inválido"),
-  password: z.string().min(1, "Contraseña requerida"),
+  email: z.string().trim().toLowerCase().email("emailInvalid"),
+  password: z.string().min(1, "passwordRequired"),
 });
 
 export const registerSchema = z
   .object({
-    name: z.string().min(2, "Nombre demasiado corto").max(80).trim(),
+    name: z.string().min(2, "nameShort").max(80).trim(),
     password: z
       .string()
-      .min(12, "La contraseña debe tener al menos 12 caracteres")
-      .max(128, "Contraseña demasiado larga"),
+      .min(12, "passwordMin")
+      .max(128, "passwordLong"),
     confirmPassword: z.string(),
     slug: slugSchema,
   })
   .refine((d) => d.password === d.confirmPassword, {
-    message: "Las contraseñas no coinciden",
+    message: "passwordMismatch",
     path: ["confirmPassword"],
   });
 
@@ -65,7 +68,7 @@ export const createInviteSchema = z.object({
     .string()
     .trim()
     .toLowerCase()
-    .email("Email inválido")
+    .email("emailInvalid")
     .optional()
     .or(z.literal("")),
   expiresInHours: z.coerce
@@ -87,12 +90,12 @@ export const hexColorRegex = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 export const themeSchema = z.object({
   primaryColor: z
     .string()
-    .regex(hexColorRegex, "Color primario inválido (debe ser código HEX, ej: #2563eb)")
-    .default("#4f46e5"),
+    .regex(hexColorRegex, "primaryColorInvalid")
+    .default("#0D4F52"),
   accentColor: z
     .string()
-    .regex(hexColorRegex, "Color secundario inválido (debe ser código HEX)")
-    .default("#06b6d4"),
+    .regex(hexColorRegex, "accentColorInvalid")
+    .default("#FFC300"),
   fontFamily: z.enum(["sans", "serif", "mono"]).default("sans"),
   bgMode: z.enum(["dark", "light", "gradient"]).default("dark"),
 });
@@ -100,8 +103,8 @@ export const themeSchema = z.object({
 export type CardTheme = z.infer<typeof themeSchema>;
 
 export const defaultTheme: CardTheme = {
-  primaryColor: "#4f46e5",
-  accentColor: "#06b6d4",
+  primaryColor: "#0D4F52", // mar
+  accentColor: "#FFC300", // voltio
   fontFamily: "sans",
   bgMode: "dark",
 };
@@ -112,15 +115,15 @@ export const defaultTheme: CardTheme = {
 export const socialLinkSchema = z.object({
   platform: z
     .string()
-    .min(1, "Plataforma requerida")
+    .min(1, "platformRequired")
     .max(32)
     .trim(),
   url: z
     .string()
     .trim()
-    .url("URL inválida")
+    .url("urlInvalid")
     .refine((u) => u.startsWith("https://"), {
-      message: "Las URLs externas deben usar protocolo seguro (https://)",
+      message: "urlHttps",
     }),
 });
 
@@ -131,7 +134,7 @@ export type SocialLink = z.infer<typeof socialLinkSchema>;
 // Actualización completa de Card y CardContent
 // ─────────────────────────────────────────────
 export const cardContentUpdateSchema = z.object({
-  name: z.string().trim().min(1, "El nombre es obligatorio").max(80),
+  name: z.string().trim().min(1, "nameRequired").max(80),
   jobTitle: z.string().trim().max(80).default(""),
   company: z.string().trim().max(80).default(""),
   bio: z.string().trim().max(500).default(""),
@@ -139,21 +142,21 @@ export const cardContentUpdateSchema = z.object({
     .string()
     .trim()
     .max(30)
-    .regex(/^(\+?[0-9\s\-().]{5,30})?$/, "Número de teléfono con formato inválido")
+    .regex(/^(\+?[0-9\s\-().]{5,30})?$/, "phoneInvalid")
     .default(""),
   email: z
     .string()
     .trim()
     .toLowerCase()
-    .email("Email inválido")
+    .email("emailInvalid")
     .or(z.literal(""))
     .default(""),
   website: z
     .string()
     .trim()
-    .url("URL de sitio web inválida")
+    .url("websiteInvalid")
     .refine((u) => u === "" || u.startsWith("https://"), {
-      message: "El sitio web debe comenzar por https://",
+      message: "websiteHttps",
     })
     .or(z.literal(""))
     .default(""),

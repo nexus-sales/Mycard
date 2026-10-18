@@ -4,14 +4,19 @@ import { requireAdmin } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import AdminInviteForm from "@/components/admin/AdminInviteForm";
 import UserTable from "@/components/admin/UserTable";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { getI18n } from "@/lib/i18n/server";
+import { intlLocale } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "Administración",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.meta.admin, robots: { index: false, follow: false } };
+}
 
 export default async function AdminPage() {
   const admin = await requireAdmin();
+  const { t, locale } = await getI18n();
+  const dateLocale = intlLocale(locale);
   const [users, invites] = await Promise.all([
     prisma.user.findMany({
       orderBy: { createdAt: "asc" },
@@ -28,18 +33,19 @@ export default async function AdminPage() {
   const admins = users.filter((user) => user.role === "ADMIN").length;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl">
+    <main className="min-h-screen bg-paper text-ink">
+      <header className="sticky top-0 z-40 border-b border-ink/15 bg-paper-2/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2.5 font-bold text-white">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/15 text-sm text-indigo-300">MC</span>
+          <Link href="/" className="flex items-center gap-2.5 font-bold text-ink">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-voltio text-sm font-black text-basalto">MC</span>
             <span className="hidden sm:inline">MyCard</span>
-            <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-300">Admin</span>
+            <span className="rounded-full border border-sea/20 bg-sea/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sea">{t.admin.badge}</span>
           </Link>
           <div className="flex items-center gap-2">
-            <span className="hidden text-xs text-slate-500 md:inline">{admin.email}</span>
-            <Link href="/dashboard" className="inline-flex min-h-10 items-center rounded-xl border border-slate-700 bg-slate-800 px-4 text-sm font-semibold text-slate-200 transition-colors hover:border-indigo-500/50 hover:text-white">
-              Mi tarjeta
+            <LanguageSwitcher />
+            <span className="hidden text-xs text-ink-3 md:inline">{admin.email}</span>
+            <Link href="/dashboard" className="inline-flex min-h-10 items-center rounded-xl border border-ink/15 bg-paper px-4 text-sm font-semibold text-ink transition-colors hover:border-sea/50 hover:text-ink">
+              {t.admin.myCard}
             </Link>
           </div>
         </div>
@@ -47,29 +53,29 @@ export default async function AdminPage() {
 
       <div className="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 sm:py-10">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-400">Administración</p>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">Control de accesos</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Gestiona las invitaciones privadas, el estado de las cuentas y los enlaces de recuperación.</p>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-sea">{t.admin.eyebrow}</p>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">{t.admin.title}</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-2">{t.admin.subtitle}</p>
         </div>
 
-        <section aria-label="Resumen" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section aria-label={t.admin.summary} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
-            { label: "Usuarios", value: users.length, color: "text-white" },
-            { label: "Activos", value: activeUsers, color: "text-emerald-300" },
-            { label: "Invitaciones", value: invites.length, color: "text-indigo-300" },
-            { label: "Administradores", value: admins, color: "text-violet-300" },
+            { label: t.admin.metrics.users, value: users.length, color: "text-ink" },
+            { label: t.admin.metrics.active, value: activeUsers, color: "text-emerald-700 dark:text-emerald-300" },
+            { label: t.admin.metrics.invites, value: invites.length, color: "text-sea" },
+            { label: t.admin.metrics.admins, value: admins, color: "text-sea" },
           ].map((metric) => (
-            <div key={metric.label} className="rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
+            <div key={metric.label} className="rounded-2xl border border-ink/15 bg-paper-2 p-4 sm:p-5">
               <strong className={`block text-2xl font-black ${metric.color}`}>{metric.value}</strong>
-              <span className="mt-1 block text-xs font-medium text-slate-500">{metric.label}</span>
+              <span className="mt-1 block text-xs font-medium text-ink-3">{metric.label}</span>
             </div>
           ))}
         </section>
 
         <section aria-labelledby="create-invite-title">
           <div className="mb-4">
-            <h2 id="create-invite-title" className="text-lg font-bold text-white">Crear invitación</h2>
-            <p className="mt-1 text-sm text-slate-500">Genera un enlace temporal para una nueva cuenta.</p>
+            <h2 id="create-invite-title" className="text-lg font-bold text-ink">{t.admin.createInvite}</h2>
+            <p className="mt-1 text-sm text-ink-3">{t.admin.createInviteHint}</p>
           </div>
           <AdminInviteForm />
         </section>
@@ -77,26 +83,26 @@ export default async function AdminPage() {
         <section aria-labelledby="pending-invites-title">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 id="pending-invites-title" className="text-lg font-bold text-white">Invitaciones pendientes</h2>
-              <p className="mt-1 text-sm text-slate-500">Enlaces todavía válidos y sin utilizar.</p>
+              <h2 id="pending-invites-title" className="text-lg font-bold text-ink">{t.admin.pendingInvites}</h2>
+              <p className="mt-1 text-sm text-ink-3">{t.admin.pendingInvitesHint}</p>
             </div>
-            <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-bold text-slate-300">{invites.length}</span>
+            <span className="rounded-full bg-paper px-3 py-1 text-xs font-bold text-ink-2">{invites.length}</span>
           </div>
           {invites.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 px-6 py-10 text-center text-sm text-slate-500">No hay invitaciones pendientes.</div>
+            <div className="rounded-2xl border border-dashed border-ink/15 bg-paper-2/40 px-6 py-10 text-center text-sm text-ink-3">{t.admin.noInvites}</div>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900">
+            <div className="overflow-x-auto rounded-2xl border border-ink/15 bg-paper-2">
               <table className="w-full min-w-[34rem] text-sm">
-                <caption className="sr-only">Invitaciones pendientes de utilizar</caption>
-                <thead className="bg-slate-800/60 text-xs uppercase tracking-wider text-slate-500">
-                  <tr><th scope="col" className="px-5 py-3 text-left">Destinatario</th><th scope="col" className="px-5 py-3 text-left">Creada</th><th scope="col" className="px-5 py-3 text-left">Caduca</th></tr>
+                <caption className="sr-only">{t.admin.pendingCaption}</caption>
+                <thead className="bg-paper/60 text-xs uppercase tracking-wider text-ink-3">
+                  <tr><th scope="col" className="px-5 py-3 text-left">{t.admin.colRecipient}</th><th scope="col" className="px-5 py-3 text-left">{t.admin.colCreated}</th><th scope="col" className="px-5 py-3 text-left">{t.admin.colExpires}</th></tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-ink/10">
                   {invites.map((invite) => (
                     <tr key={invite.id}>
-                      <td className="px-5 py-4 font-medium text-slate-200">{invite.email ?? <span className="italic text-slate-500">Invitación abierta</span>}</td>
-                      <td className="px-5 py-4 text-slate-500">{invite.createdAt.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}</td>
-                      <td className="px-5 py-4 text-slate-400">{invite.expiresAt.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
+                      <td className="px-5 py-4 font-medium text-ink">{invite.email ?? <span className="italic text-ink-3">{t.admin.openInvite}</span>}</td>
+                      <td className="px-5 py-4 text-ink-3">{invite.createdAt.toLocaleDateString(dateLocale, { day: "2-digit", month: "short", year: "numeric" })}</td>
+                      <td className="px-5 py-4 text-ink-2">{invite.expiresAt.toLocaleDateString(dateLocale, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -107,8 +113,8 @@ export default async function AdminPage() {
 
         <section aria-labelledby="users-title">
           <div className="mb-4 flex items-center justify-between">
-            <div><h2 id="users-title" className="text-lg font-bold text-white">Usuarios</h2><p className="mt-1 text-sm text-slate-500">Cuentas con acceso a MyCard.</p></div>
-            <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-bold text-slate-300">{users.length}</span>
+            <div><h2 id="users-title" className="text-lg font-bold text-ink">{t.admin.usersTitle}</h2><p className="mt-1 text-sm text-ink-3">{t.admin.usersHint}</p></div>
+            <span className="rounded-full bg-paper px-3 py-1 text-xs font-bold text-ink-2">{users.length}</span>
           </div>
           <UserTable users={users} />
         </section>

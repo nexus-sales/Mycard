@@ -2,10 +2,12 @@
 
 import { useActionState } from "react";
 import { loginAction } from "@/lib/actions/auth";
+import { useI18n } from "@/lib/i18n/client";
 
 type State = { error?: string } | undefined;
 
 export default function LoginForm() {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState<State, FormData>(
     loginAction,
     undefined
@@ -14,12 +16,12 @@ export default function LoginForm() {
   return (
     <form
       action={formAction}
-      className="space-y-5 rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-8"
+      className="space-y-5 rounded-2xl border border-ink/15 bg-paper-2/90 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-8"
     >
       {state?.error && (
         <div
           role="alert"
-          className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"
+          className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-300"
         >
           {state.error}
         </div>
@@ -28,9 +30,9 @@ export default function LoginForm() {
       <div>
         <label
           htmlFor="email"
-          className="mb-1.5 block text-sm font-medium text-slate-300"
+          className="mb-1.5 block text-sm font-medium text-ink-2"
         >
-          Email
+          {t.auth.email}
         </label>
         <input
           id="email"
@@ -38,16 +40,16 @@ export default function LoginForm() {
           type="email"
           autoComplete="email"
           required
-          className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 text-sm text-white outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30"
+          className="min-h-11 w-full rounded-xl border border-ink/15 bg-paper/70 px-3 text-sm text-ink outline-none transition focus:border-sea focus:ring-2 focus:ring-sea/30"
         />
       </div>
 
       <div>
         <label
           htmlFor="password"
-          className="mb-1.5 block text-sm font-medium text-slate-300"
+          className="mb-1.5 block text-sm font-medium text-ink-2"
         >
-          Contraseña
+          {t.auth.password}
         </label>
         <input
           id="password"
@@ -55,16 +57,16 @@ export default function LoginForm() {
           type="password"
           autoComplete="current-password"
           required
-          className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 text-sm text-white outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30"
+          className="min-h-11 w-full rounded-xl border border-ink/15 bg-paper/70 px-3 text-sm text-ink outline-none transition focus:border-sea focus:ring-2 focus:ring-sea/30"
         />
       </div>
 
       <button
         type="submit"
         disabled={isPending}
-        className="min-h-12 w-full rounded-xl bg-indigo-600 px-4 text-sm font-bold text-white shadow-lg shadow-indigo-950/40 transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className="min-h-12 w-full rounded-xl bg-voltio px-4 text-sm font-bold text-basalto shadow-lg shadow-basalto/20 transition-colors hover:bg-voltio/90 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isPending ? "Entrando…" : "Entrar"}
+        {isPending ? t.auth.submitting : t.auth.submit}
       </button>
     </form>
   );

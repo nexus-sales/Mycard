@@ -7,6 +7,9 @@ import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { isLikelyBot } from "@/lib/analytics";
 import { extractClientIp } from "@/lib/ip";
 import CardView from "@/components/card/CardView";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { getI18n } from "@/lib/i18n/server";
+import { fmt } from "@/lib/i18n/config";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -14,6 +17,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const { t } = await getI18n();
 
   const card = await prisma.card.findUnique({
     where: { slug },
@@ -22,21 +26,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!card || !card.active) {
     return {
-      title: "Tarjeta no encontrada",
+      title: t.meta.cardNotFound,
       robots: { index: false, follow: false },
     };
   }
 
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
-  const name = card.content?.name || "Contacto";
-  const title = `${name} | Tarjeta digital`;
+  const name = card.content?.name || t.meta.cardContact;
+  const title = fmt(t.meta.cardTitle, { name });
   const descriptionParts = [
     card.content?.jobTitle,
-    card.content?.company ? `en ${card.content.company}` : null,
+    card.content?.company ? fmt(t.meta.cardDescAt, { company: card.content.company }) : null,
   ].filter(Boolean);
   const description = descriptionParts.length > 0
     ? descriptionParts.join(" ")
-    : card.content?.bio || "Tarjeta de visita digital profesional.";
+    : card.content?.bio || t.meta.cardDescFallback;
 
   const cardUrl = `${appUrl}/c/${slug}`;
   const imageUrl = card.content?.avatarPath
@@ -68,6 +72,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function PublicCardPage({ params }: PageProps) {
   const { slug } = await params;
   const headerList = await headers();
+  const { t } = await getI18n();
 
   // 1. Rate limiting en memoria para mitigar scraping
   const clientIp = extractClientIp(headerList);
@@ -75,11 +80,11 @@ export default async function PublicCardPage({ params }: PageProps) {
   const rl = rateLimit(`card:${clientIp}`, RATE_LIMITS.cardView);
   if (!rl.allowed) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-300 flex items-center justify-center p-6 text-center">
+      <main className="min-h-screen bg-paper text-ink-2 flex items-center justify-center p-6 text-center">
         <div className="max-w-md space-y-3">
-          <h1 className="text-xl font-bold text-white">Demasiadas peticiones</h1>
-          <p className="text-sm text-slate-400">
-            Has alcanzado el límite de visualizaciones por minuto. Por favor, espera unos segundos antes de recargar.
+          <h1 className="text-xl font-bold text-ink">{t.card.tooManyTitle}</h1>
+          <p className="text-sm text-ink-2">
+            {t.card.tooManyText}
           </p>
         </div>
       </main>
@@ -126,7 +131,8 @@ export default async function PublicCardPage({ params }: PageProps) {
     : [];
 
   return (
-    <main className="min-h-screen bg-slate-950 flex flex-col items-center justify-center py-8 px-4 sm:px-6">
+    <main className="relative min-h-screen bg-paper flex flex-col items-center justify-center py-8 px-4 sm:px-6">
+      <div className="absolute right-4 top-4 z-10"><LanguageSwitcher /></div>
       <CardView
         card={{
           slug: card.slug,

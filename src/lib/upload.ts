@@ -3,6 +3,19 @@ import path from "path";
 import crypto from "crypto";
 import sharp, { Metadata } from "sharp";
 
+/** Error de subida con código estable; la acción de servidor lo traduce al idioma del usuario. */
+export type UploadErrorCode = "tooLarge" | "badFormat" | "corrupt" | "unsupported";
+
+export class UploadError extends Error {
+  constructor(
+    public readonly code: UploadErrorCode,
+    public readonly params: { mb?: number } = {}
+  ) {
+    super(code);
+    this.name = "UploadError";
+  }
+}
+
 // Directorio base de subidas
 const UPLOAD_DIR = path.resolve(process.cwd(), process.env.UPLOAD_DIR ?? "./uploads");
 
@@ -89,7 +102,7 @@ export async function processAndSaveImage(
   // 1. Validar tamaño de payload
   if (file.size > config.maxBytes) {
     const mb = Math.round(config.maxBytes / (1024 * 1024));
-    throw new Error(`La imagen supera el tamaño máximo permitido (${mb} MB).`);
+    throw new UploadError("tooLarge", { mb });
   }
 
   const arrayBuffer = await file.arrayBuffer();
@@ -97,7 +110,7 @@ export async function processAndSaveImage(
 
   // 2. Validar magic bytes reales
   if (!isValidImageMagicBytes(buffer)) {
-    throw new Error("Formato de imagen inválido. Solo se admiten JPEG, PNG, WebP o GIF.");
+    throw new UploadError("badFormat");
   }
 
   // 3. Inspeccionar con sharp (falla si el archivo está corrupto o es un polyglot)
@@ -105,12 +118,12 @@ export async function processAndSaveImage(
   try {
     metadata = await sharp(buffer).metadata();
   } catch {
-    throw new Error("El archivo no es una imagen válida o está corrupto.");
+    throw new UploadError("corrupt");
   }
 
   const allowedFormats = ["jpeg", "png", "webp", "gif"];
   if (!metadata.format || !allowedFormats.includes(metadata.format)) {
-    throw new Error("Formato no soportado.");
+    throw new UploadError("unsupported");
   }
 
   await ensureUploadDir();

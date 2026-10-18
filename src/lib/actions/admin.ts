@@ -5,6 +5,8 @@ import { generateToken, hashToken } from "@/lib/crypto";
 import { createInviteSchema } from "@/lib/validations";
 import { requireAdmin } from "@/lib/session";
 import { revalidatePath } from "next/cache";
+import { getI18n } from "@/lib/i18n/server";
+import { translateValidation } from "@/lib/i18n/dictionaries";
 
 // ─────────────────────────────────────────────
 // Crear invitación (solo ADMIN)
@@ -14,6 +16,7 @@ export async function createInviteAction(
   formData: FormData
 ) {
   const admin = await requireAdmin();
+  const { t } = await getI18n();
 
   const parsed = createInviteSchema.safeParse({
     email: formData.get("email") ?? "",
@@ -21,7 +24,7 @@ export async function createInviteAction(
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.errors[0]?.message ?? "Datos inválidos" };
+    return { error: translateValidation(t, parsed.error.errors[0]?.message) };
   }
 
   const { email, expiresInHours } = parsed.data;
@@ -54,9 +57,10 @@ export async function toggleUserActiveAction(
   active: boolean
 ) {
   const admin = await requireAdmin();
+  const { t } = await getI18n();
 
   if (userId === admin.id && !active) {
-    return { error: "No puedes desactivar tu propia cuenta de administrador" };
+    return { error: t.admin.selfDeactivate };
   }
 
   await prisma.user.update({
@@ -81,9 +85,10 @@ export async function toggleUserActiveAction(
 // ─────────────────────────────────────────────
 export async function generatePasswordResetAction(userId: string) {
   const admin = await requireAdmin();
+  const { t } = await getI18n();
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) return { error: "Usuario no encontrado" };
+  if (!user) return { error: t.admin.userNotFound };
 
   const token = generateToken(32);
   const tokenHash = hashToken(token);

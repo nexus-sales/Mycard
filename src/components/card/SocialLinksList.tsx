@@ -1,4 +1,8 @@
+"use client";
+
 import React from "react";
+import { useI18n } from "@/lib/i18n/client";
+import { fmt } from "@/lib/i18n/config";
 import { sanitizeExternalUrl } from "@/lib/validations";
 
 interface SocialLinkItem {
@@ -60,6 +64,7 @@ function PlatformIcon({ platform }: { platform: string }) {
 }
 
 export default function SocialLinksList({ links, accentColor }: SocialLinksListProps) {
+  const { t } = useI18n();
   if (!links || links.length === 0) return null;
 
   return (
@@ -75,9 +80,9 @@ export default function SocialLinksList({ links, accentColor }: SocialLinksListP
             target="_blank"
             rel="noopener noreferrer"
             title={item.platform}
-            aria-label={`Abrir ${item.platform} en una pestaña nueva`}
+            aria-label={fmt(t.card.openSocial, { platform: item.platform })}
             style={accentColor ? { borderColor: `${accentColor}40` } : undefined}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-white/10 bg-white/10 p-2.5 text-slate-200 shadow-sm transition-all hover:scale-105 hover:bg-white/20 hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-white/10 bg-white/10 p-2.5 text-cal shadow-sm transition-all hover:scale-105 hover:bg-white/20 hover:text-cal active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
           >
             <PlatformIcon platform={item.platform} />
             <span className="sr-only">{item.platform}</span>

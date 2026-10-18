@@ -12,6 +12,8 @@ import argon2 from "argon2";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { extractClientIp } from "@/lib/ip";
+import { getI18n } from "@/lib/i18n/server";
+import { translateFieldErrors, translateValidation } from "@/lib/i18n/dictionaries";
 
 async function getClientIp(): Promise<string> {
   const headersList = await headers();
@@ -26,12 +28,13 @@ export async function registerWithInviteAction(
   formData: FormData
 ) {
   const ip = await getClientIp();
+  const { t } = await getI18n();
 
   // Rate limiting
   const rl = rateLimit(`invite:${ip}`, RATE_LIMITS.invite);
   if (!rl.allowed) {
     return {
-      error: "Demasiados intentos. Inténtalo más tarde.",
+      error: t.auth.tooManyInvite,
     };
   }
 
@@ -45,8 +48,8 @@ export async function registerWithInviteAction(
 
   if (!parsed.success) {
     return {
-      error: parsed.error.errors[0]?.message ?? "Datos inválidos",
-      fieldErrors: parsed.error.flatten().fieldErrors,
+      error: translateValidation(t, parsed.error.errors[0]?.message),
+      fieldErrors: translateFieldErrors(t, parsed.error.flatten().fieldErrors),
     };
   }
 
@@ -62,7 +65,7 @@ export async function registerWithInviteAction(
     invite.usedAt !== null ||
     invite.expiresAt < new Date()
   ) {
-    return { error: "El enlace de invitación no es válido o ha caducado." };
+    return { error: t.invite.invalidInvite };
   }
 
   // Comprobar slug único solo si no pertenece al usuario existente
@@ -145,17 +148,17 @@ export async function registerWithInviteAction(
   } catch (err: unknown) {
     if (err instanceof Error) {
       if (err.message === "EMAIL_REQUIRED") {
-        return { error: "Se requiere un email para registrarse.", fieldErrors: { email: ["Email requerido"] } };
+        return { error: t.invite.emailRequired, fieldErrors: { email: [t.invite.emailRequiredField] } };
       }
       if (err.message === "EMAIL_EXISTS") {
-        return { error: "No se puede completar el registro con este email.", fieldErrors: {} };
+        return { error: t.invite.emailExists, fieldErrors: {} };
       }
       if (err.message === "SLUG_EXISTS") {
-        return { error: "Ese slug ya está en uso, elige otro.", fieldErrors: { slug: ["Slug ya en uso"] } };
+        return { error: t.invite.slugInUse, fieldErrors: { slug: [t.invite.slugInUseField] } };
       }
     }
     console.error("Error en registro:", err);
-    return { error: "Error interno. Inténtalo de nuevo." };
+    return { error: t.invite.internal };
   }
 
   // Crear sesión

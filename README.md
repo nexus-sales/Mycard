@@ -206,6 +206,13 @@ Abre en el navegador: [http://localhost:3000](http://localhost:3000).
 
 ---
 
+## 🌍 Idiomas y marca
+
+- **Bilingüe ES/EN.** El idioma se elige con la cookie `lang` (selector ES | EN en cabeceras y portada) y, si no existe, con `Accept-Language`; por defecto, español. No hay prefijo en la URL, por lo que los enlaces `/c/<slug>` y los QR ya impresos no cambian. Los textos están en [src/lib/i18n/dictionaries.ts](src/lib/i18n/dictionaries.ts) (un test comprueba que ambos idiomas tienen las mismas claves). Los mensajes de validación de Zod son claves que las acciones de servidor traducen.
+- **Paleta corporativa** definida en [src/app/globals.css](src/app/globals.css): colores fijos (`basalto`, `picon`, `humo`, `cal`, `cal-alt`, `mar`, `voltio`) para hero, pie, botones y plantillas de tarjeta, y colores adaptativos (`ink`, `paper`, `sea`) que cambian automáticamente con el modo oscuro del sistema.
+
+---
+
 ## 🚢 Despliegue y Producción
 
 El proyecto está diseñado para desplegarse mediante **Dokploy** en una VPS de **Hetzner** desde GitHub, detrás de **Traefik** y con un PostgreSQL existente:

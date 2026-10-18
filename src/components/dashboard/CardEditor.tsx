@@ -8,6 +8,9 @@ import CardView from "@/components/card/CardView";
 import ImageUploader from "./ImageUploader";
 import QrCodeGenerator from "./QrCodeGenerator";
 import GoogleWalletButton from "@/components/card/GoogleWalletButton";
+import { useI18n } from "@/lib/i18n/client";
+import { fmt } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 interface InitialCardData {
   id: string;
@@ -40,17 +43,18 @@ interface CardEditorProps {
   appUrl: string;
 }
 
-const editorSections = [
-  { id: "diseno", label: "Diseño" },
-  { id: "imagenes", label: "Imágenes" },
-  { id: "perfil", label: "Perfil" },
-  { id: "contacto", label: "Contacto" },
-  { id: "redes", label: "Redes" },
-  { id: "publicacion", label: "Publicación" },
-  { id: "qr", label: "Código QR" },
-] as const;
+const editorSections: Array<{ id: string; key: keyof Dictionary["editor"]["sections"] }> = [
+  { id: "diseno", key: "design" },
+  { id: "imagenes", key: "images" },
+  { id: "perfil", key: "profile" },
+  { id: "contacto", key: "contact" },
+  { id: "redes", key: "social" },
+  { id: "publicacion", key: "publish" },
+  { id: "qr", key: "qr" },
+];
 
 export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
+  const { t } = useI18n();
   const [isPending, startTransition] = useTransition();
   const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
   const [saveStatus, setSaveStatus] = useState<{ success?: string; error?: string } | null>(null);
@@ -181,7 +185,7 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
         setSavedSnapshot(snapshotToSave);
         setSavedSlug(payloadToSave.settings.slug);
         setSavedActive(payloadToSave.settings.active);
-        setSaveStatus({ success: "¡Tarjeta guardada y actualizada correctamente!" });
+        setSaveStatus({ success: t.editor.saveSuccess });
       }
     });
   };
@@ -191,36 +195,36 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
   return (
     <div className="space-y-6 pb-24 lg:pb-0">
       {/* Barra superior de estado y métricas */}
-      <div className="lg:sticky lg:top-20 z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl">
+      <div className="lg:sticky lg:top-20 z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-paper-2/95 backdrop-blur-xl border border-ink/15 rounded-2xl p-4 sm:p-6 shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-white">Editor de Tarjeta</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-ink">{t.editor.title}</h1>
             <span
               className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
-                savedActive ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                savedActive ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20" : "bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20"
               }`}
             >
-              {savedActive ? "Pública y activa" : "Oculta"}
+              {savedActive ? t.editor.publicActive : t.editor.hidden}
             </span>
             <span
               role="status"
               aria-live="polite"
               className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-xs font-semibold ${
                 hasUnsavedChanges
-                  ? "bg-amber-500/10 text-amber-300 border-amber-500/20"
-                  : "bg-slate-800 text-slate-300 border-slate-700"
+                  ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20"
+                  : "bg-paper text-ink-2 border-ink/15"
               }`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${hasUnsavedChanges ? "bg-amber-400" : "bg-emerald-400"}`} />
-              {hasUnsavedChanges ? "Cambios sin guardar" : "Todo guardado"}
+              {hasUnsavedChanges ? t.editor.unsaved : t.editor.allSaved}
             </span>
           </div>
-          <p className="text-xs text-slate-400">
-            Enlace público:{" "}
+          <p className="text-xs text-ink-2">
+            {t.editor.publicLink}{" "}
             <Link
               href={`/c/${savedSlug}`}
               target="_blank"
-              className="text-indigo-400 hover:underline font-mono"
+              className="text-sea hover:underline font-mono"
             >
               /c/{savedSlug}
             </Link>
@@ -229,9 +233,9 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
 
         <div className="flex items-center gap-4">
           <div className="text-right hidden sm:block">
-            <span className="block text-2xl font-extrabold text-white">{initialCard.views}</span>
-            <span className="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">
-              Visitas registradas
+            <span className="block text-2xl font-extrabold text-ink">{initialCard.views}</span>
+            <span className="text-[11px] text-ink-2 uppercase tracking-wider font-semibold">
+              {t.editor.views}
             </span>
           </div>
 
@@ -239,7 +243,7 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
             type="button"
             onClick={handleSave}
             disabled={isPending || !hasUnsavedChanges}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold text-sm shadow-md transition-all active:scale-95 flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-voltio hover:bg-voltio/90 disabled:opacity-50 text-basalto font-semibold text-sm shadow-md transition-all active:scale-95 flex items-center gap-2"
           >
             {isPending && (
               <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -247,22 +251,22 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
             )}
-            {isPending ? "Guardando…" : hasUnsavedChanges ? "Guardar cambios" : "Guardado"}
+            {isPending ? t.editor.saving : hasUnsavedChanges ? t.editor.save : t.editor.saved}
           </button>
         </div>
       </div>
 
       {/* Alerta de guardado */}
       {saveStatus?.success && !hasUnsavedChanges && (
-        <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center gap-2">
-          <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium flex items-center gap-2">
+          <svg className="w-4 h-4 text-emerald-700 dark:text-emerald-300 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
           {saveStatus.success}
         </div>
       )}
       {saveStatus?.error && (
-        <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-medium">
+        <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-medium">
           {saveStatus.error}
         </div>
       )}
@@ -270,8 +274,8 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
       {/* Selector de pestañas para móvil */}
       <div
         role="tablist"
-        aria-label="Modo del editor"
-        className="sticky top-16 z-20 flex lg:hidden bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-xl p-1 shadow-lg"
+        aria-label={t.editor.modeLabel}
+        className="sticky top-16 z-20 flex lg:hidden bg-paper-2/95 backdrop-blur-xl border border-ink/15 rounded-xl p-1 shadow-lg"
       >
         <button
           role="tab"
@@ -279,10 +283,10 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
           type="button"
           onClick={() => setMobileTab("edit")}
           className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
-            mobileTab === "edit" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-slate-200"
+            mobileTab === "edit" ? "bg-voltio text-basalto" : "text-ink-2 hover:text-ink"
           }`}
         >
-          Editar información
+          {t.editor.tabEdit}
         </button>
         <button
           role="tab"
@@ -290,23 +294,23 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
           type="button"
           onClick={() => setMobileTab("preview")}
           className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
-            mobileTab === "preview" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-slate-200"
+            mobileTab === "preview" ? "bg-voltio text-basalto" : "text-ink-2 hover:text-ink"
           }`}
         >
-          Vista previa en vivo
+          {t.editor.tabPreview}
         </button>
       </div>
 
       {mobileTab === "edit" && (
-        <nav aria-label="Secciones del editor" className="lg:hidden -mx-4 px-4 overflow-x-auto [scrollbar-width:none]">
+        <nav aria-label={t.editor.sectionsLabel} className="lg:hidden -mx-4 px-4 overflow-x-auto [scrollbar-width:none]">
           <div className="flex w-max gap-2 pb-1">
             {editorSections.map((section) => (
               <a
                 key={section.id}
                 href={`#${section.id}`}
-                className="min-h-11 inline-flex items-center rounded-full border border-slate-700 bg-slate-900 px-4 text-xs font-semibold text-slate-300 hover:border-indigo-500 hover:text-white transition-colors"
+                className="min-h-11 inline-flex items-center rounded-full border border-ink/15 bg-paper-2 px-4 text-xs font-semibold text-ink-2 hover:border-sea hover:text-ink transition-colors"
               >
-                {section.label}
+                {t.editor.sections[section.key]}
               </a>
             ))}
           </div>
@@ -318,22 +322,22 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
         {/* Columna Izquierda: Formulario de edición */}
         <div className={`lg:col-span-7 space-y-6 ${mobileTab === "preview" ? "hidden lg:block" : "block"}`}>
           {/* SECCIÓN 1: Plantilla y Diseño */}
-          <div id="diseno" className="scroll-mt-32 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-5 shadow-lg">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" />
-              Plantilla y Estilo
+          <div id="diseno" className="scroll-mt-32 bg-paper-2 border border-ink/15 rounded-2xl p-4 sm:p-6 space-y-5 shadow-lg">
+            <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-sea" />
+              {t.editor.designTitle}
             </h2>
 
             {/* Selector de Plantilla */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-2">
-                Selecciona tu plantilla
+              <label className="block text-xs font-medium text-ink-2 mb-2">
+                {t.editor.chooseTemplate}
               </label>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { id: "MINIMAL", label: "Minimalista", desc: "Geométrica y sobria" },
-                  { id: "CLASSIC", label: "Ejecutiva", desc: "Corporativa y formal" },
-                  { id: "MODERN", label: "Creativa", desc: "Vibrante con banner" },
+                  { id: "MINIMAL", ...t.editor.templates.MINIMAL },
+                  { id: "CLASSIC", ...t.editor.templates.CLASSIC },
+                  { id: "MODERN", ...t.editor.templates.MODERN },
                 ].map((tpl) => (
                   <button
                     key={tpl.id}
@@ -341,12 +345,12 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
                     onClick={() => setTemplate(tpl.id as CardTemplateType)}
                     className={`p-3 rounded-xl border text-left transition-all ${
                       template === tpl.id
-                        ? "border-indigo-500 bg-indigo-500/10 shadow-sm"
-                        : "border-slate-800 hover:border-slate-700 bg-slate-950/50"
+                        ? "border-sea bg-sea/10 shadow-sm"
+                        : "border-ink/15 hover:border-ink/15 bg-paper/50"
                     }`}
                   >
-                    <span className="block text-xs font-bold text-white">{tpl.label}</span>
-                    <span className="block text-[10px] text-slate-400 mt-0.5">{tpl.desc}</span>
+                    <span className="block text-xs font-bold text-ink">{tpl.label}</span>
+                    <span className="block text-[10px] text-ink-2 mt-0.5">{tpl.desc}</span>
                   </button>
                 ))}
               </div>
@@ -355,8 +359,8 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
             {/* Colores */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div>
-                <label htmlFor="primary-color" className="block text-xs font-medium text-slate-300 mb-1">
-                  Color Primario (Botones)
+                <label htmlFor="primary-color" className="block text-xs font-medium text-ink-2 mb-1">
+                  {t.editor.primaryColor}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -364,21 +368,21 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
                     type="color"
                     value={theme.primaryColor}
                     onChange={(e) => setTheme({ ...theme, primaryColor: e.target.value })}
-                    className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 cursor-pointer"
+                    className="w-9 h-9 rounded-lg bg-paper border border-ink/15 cursor-pointer"
                   />
                   <input
-                    aria-label="Código hexadecimal del color primario"
+                    aria-label={t.editor.primaryColorHex}
                     type="text"
                     value={theme.primaryColor}
                     onChange={(e) => setTheme({ ...theme, primaryColor: e.target.value })}
-                    className="flex-1 rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs text-white font-mono"
+                    className="flex-1 rounded-lg bg-paper border border-ink/15 px-3 py-1.5 text-xs text-ink font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="accent-color" className="block text-xs font-medium text-slate-300 mb-1">
-                  Color Secundario (Acentos)
+                <label htmlFor="accent-color" className="block text-xs font-medium text-ink-2 mb-1">
+                  {t.editor.accentColor}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -386,14 +390,14 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
                     type="color"
                     value={theme.accentColor}
                     onChange={(e) => setTheme({ ...theme, accentColor: e.target.value })}
-                    className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 cursor-pointer"
+                    className="w-9 h-9 rounded-lg bg-paper border border-ink/15 cursor-pointer"
                   />
                   <input
-                    aria-label="Código hexadecimal del color secundario"
+                    aria-label={t.editor.accentColorHex}
                     type="text"
                     value={theme.accentColor}
                     onChange={(e) => setTheme({ ...theme, accentColor: e.target.value })}
-                    className="flex-1 rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs text-white font-mono"
+                    className="flex-1 rounded-lg bg-paper border border-ink/15 px-3 py-1.5 text-xs text-ink font-mono"
                   />
                 </div>
               </div>
@@ -401,42 +405,42 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
 
             {/* Tipografía */}
             <div>
-              <label htmlFor="font-family" className="block text-xs font-medium text-slate-300 mb-1">
-                Tipografía
+              <label htmlFor="font-family" className="block text-xs font-medium text-ink-2 mb-1">
+                {t.editor.typography}
               </label>
               <select
                 id="font-family"
                 value={theme.fontFamily}
                 onChange={(e) => setTheme({ ...theme, fontFamily: e.target.value as "sans" | "serif" | "mono" })}
-                className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-xl bg-paper border border-ink/15 px-3 py-2 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-sea"
               >
-                <option value="sans">Moderna Sans-Serif (Limpia y versátil)</option>
-                <option value="serif">Elegante Serif (Clásica y formal)</option>
-                <option value="mono">Técnica Monoespaciada (Developer / Tech)</option>
+                <option value="sans">{t.editor.fonts.sans}</option>
+                <option value="serif">{t.editor.fonts.serif}</option>
+                <option value="mono">{t.editor.fonts.mono}</option>
               </select>
             </div>
           </div>
 
           {/* SECCIÓN 2: Imágenes (Avatar y Banner) */}
-          <div id="imagenes" className="scroll-mt-32 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-5 shadow-lg">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-cyan-500" />
-              Imágenes de Perfil
+          <div id="imagenes" className="scroll-mt-32 bg-paper-2 border border-ink/15 rounded-2xl p-4 sm:p-6 space-y-5 shadow-lg">
+            <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-sea" />
+              {t.editor.imagesTitle}
             </h2>
 
             <ImageUploader
               type="avatar"
-              label="Avatar / Foto de perfil"
-              helperText="JPEG, PNG, WebP o GIF (máx. 2MB). Reprocesada a WebP 400x400 sin EXIF."
+              label={t.editor.avatarLabel}
+              helperText={t.editor.avatarHelp}
               currentPath={avatarPath}
               onImageChanged={(p) => setAvatarPath(p)}
             />
 
-            <div className="pt-2 border-t border-slate-800">
+            <div className="pt-2 border-t border-ink/15">
               <ImageUploader
                 type="banner"
-                label="Banner de cabecera"
-                helperText="JPEG, PNG, WebP o GIF (máx. 4MB). Reprocesada a WebP 1200x400 sin EXIF."
+                label={t.editor.bannerLabel}
+                helperText={t.editor.bannerHelp}
                 currentPath={bannerPath}
                 onImageChanged={(p) => setBannerPath(p)}
               />
@@ -444,210 +448,210 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
           </div>
 
           {/* SECCIÓN 3: Información Personal y Profesional */}
-          <div id="perfil" className="scroll-mt-32 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-4 shadow-lg">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <div id="perfil" className="scroll-mt-32 bg-paper-2 border border-ink/15 rounded-2xl p-4 sm:p-6 space-y-4 shadow-lg">
+            <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-500" />
-              Información Personal
+              {t.editor.profileTitle}
             </h2>
 
             <div>
-              <label htmlFor="card-name" className="block text-xs font-medium text-slate-300 mb-1">Nombre completo *</label>
+              <label htmlFor="card-name" className="block text-xs font-medium text-ink-2 mb-1">{t.editor.fullName}</label>
               <input
                 id="card-name"
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-xl bg-paper border border-ink/15 px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-sea"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="job-title" className="block text-xs font-medium text-slate-300 mb-1">Cargo o especialidad</label>
+                <label htmlFor="job-title" className="block text-xs font-medium text-ink-2 mb-1">{t.editor.jobTitle}</label>
                 <input
                   id="job-title"
                   type="text"
-                  placeholder="ej: Senior Software Engineer"
+                  placeholder={t.editor.jobTitlePlaceholder}
                   value={jobTitle}
                   onChange={(e) => setJobTitle(e.target.value)}
-                  className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-xl bg-paper border border-ink/15 px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-sea"
                 />
               </div>
 
               <div>
-                <label htmlFor="company" className="block text-xs font-medium text-slate-300 mb-1">Empresa u organización</label>
+                <label htmlFor="company" className="block text-xs font-medium text-ink-2 mb-1">{t.editor.company}</label>
                 <input
                   id="company"
                   type="text"
-                  placeholder="ej: Acme Corp"
+                  placeholder={t.editor.companyPlaceholder}
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
-                  className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-xl bg-paper border border-ink/15 px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-sea"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="bio" className="block text-xs font-medium text-slate-300 mb-1">Biografía o presentación corta</label>
+              <label htmlFor="bio" className="block text-xs font-medium text-ink-2 mb-1">{t.editor.bio}</label>
               <textarea
                 id="bio"
                 rows={3}
-                placeholder="Breve resumen profesional o propuesta de valor..."
+                placeholder={t.editor.bioPlaceholder}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 maxLength={500}
-                className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-xl bg-paper border border-ink/15 px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-sea"
               />
-              <span className="text-[10px] text-slate-500">{bio.length}/500 caracteres</span>
+              <span className="text-[10px] text-ink-3">{fmt(t.editor.bioCount, { count: bio.length })}</span>
             </div>
           </div>
 
           {/* SECCIÓN 4: Datos de Contacto y Toggles de Visibilidad */}
-          <div id="contacto" className="scroll-mt-32 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-4 shadow-lg">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <div id="contacto" className="scroll-mt-32 bg-paper-2 border border-ink/15 rounded-2xl p-4 sm:p-6 space-y-4 shadow-lg">
+            <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              Contacto y Privacidad
+              {t.editor.contactTitle}
             </h2>
-            <p className="text-xs text-slate-400">
-              Controla qué datos serán públicos. Si un dato tiene su interruptor desactivado, no se mostrará en tu tarjeta pública.
+            <p className="text-xs text-ink-2">
+              {t.editor.contactHelp}
             </p>
 
             {/* Email */}
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+            <div className="p-3 rounded-xl bg-paper/60 border border-ink/15 space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-200">Email de contacto</label>
+                <label className="text-xs font-semibold text-ink">{t.editor.contactEmail}</label>
                 <label className="inline-flex items-center cursor-pointer gap-2">
-                  <span className="text-[11px] text-slate-400">{showEmail ? "Visible" : "Oculto"}</span>
+                  <span className="text-[11px] text-ink-2">{showEmail ? t.editor.visible : t.editor.hiddenToggle}</span>
                   <input
-                    aria-label="Mostrar email en la tarjeta pública"
+                    aria-label={t.editor.showEmail}
                     type="checkbox"
                     checked={showEmail}
                     onChange={(e) => setShowEmail(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-8 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600 relative" />
+                  <div className="w-8 h-4 bg-ink-3/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600 relative" />
                 </label>
               </div>
               <input
-                aria-label="Email de contacto"
+                aria-label={t.editor.contactEmail}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs text-white"
+                className="w-full rounded-lg bg-paper border border-ink/15 px-3 py-1.5 text-xs text-ink"
               />
             </div>
 
             {/* Teléfono */}
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+            <div className="p-3 rounded-xl bg-paper/60 border border-ink/15 space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-200">Teléfono</label>
+                <label className="text-xs font-semibold text-ink">{t.editor.phone}</label>
                 <label className="inline-flex items-center cursor-pointer gap-2">
-                  <span className="text-[11px] text-slate-400">{showPhone ? "Visible" : "Oculto"}</span>
+                  <span className="text-[11px] text-ink-2">{showPhone ? t.editor.visible : t.editor.hiddenToggle}</span>
                   <input
-                    aria-label="Mostrar teléfono en la tarjeta pública"
+                    aria-label={t.editor.showPhone}
                     type="checkbox"
                     checked={showPhone}
                     onChange={(e) => setShowPhone(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-8 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600 relative" />
+                  <div className="w-8 h-4 bg-ink-3/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600 relative" />
                 </label>
               </div>
               <input
-                aria-label="Teléfono de contacto"
+                aria-label={t.editor.phoneLabel}
                 type="tel"
                 placeholder="+34 600 000 000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs text-white"
+                className="w-full rounded-lg bg-paper border border-ink/15 px-3 py-1.5 text-xs text-ink"
               />
             </div>
 
             {/* Sitio Web */}
             <div>
-              <label htmlFor="website" className="block text-xs font-medium text-slate-300 mb-1">Sitio web personal o portafolio</label>
+              <label htmlFor="website" className="block text-xs font-medium text-ink-2 mb-1">{t.editor.website}</label>
               <input
                 id="website"
                 type="url"
-                placeholder="https://miweb.com"
+                placeholder="https://example.com"
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
-                className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-xl bg-paper border border-ink/15 px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-sea"
               />
             </div>
 
             {/* Dirección */}
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+            <div className="p-3 rounded-xl bg-paper/60 border border-ink/15 space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-200">Ubicación / Dirección</label>
+                <label className="text-xs font-semibold text-ink">{t.editor.address}</label>
                 <label className="inline-flex items-center cursor-pointer gap-2">
-                  <span className="text-[11px] text-slate-400">{showAddress ? "Visible" : "Oculto"}</span>
+                  <span className="text-[11px] text-ink-2">{showAddress ? t.editor.visible : t.editor.hiddenToggle}</span>
                   <input
-                    aria-label="Mostrar dirección en la tarjeta pública"
+                    aria-label={t.editor.showAddress}
                     type="checkbox"
                     checked={showAddress}
                     onChange={(e) => setShowAddress(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-8 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600 relative" />
+                  <div className="w-8 h-4 bg-ink-3/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600 relative" />
                 </label>
               </div>
               <input
-                aria-label="Ubicación o dirección"
+                aria-label={t.editor.addressLabel}
                 type="text"
-                placeholder="ej: Madrid, España"
+                placeholder={t.editor.addressPlaceholder}
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs text-white"
+                className="w-full rounded-lg bg-paper border border-ink/15 px-3 py-1.5 text-xs text-ink"
               />
             </div>
           </div>
 
           {/* SECCIÓN 5: Redes Sociales */}
-          <div id="redes" className="scroll-mt-32 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-4 shadow-lg">
+          <div id="redes" className="scroll-mt-32 bg-paper-2 border border-ink/15 rounded-2xl p-4 sm:p-6 space-y-4 shadow-lg">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-violet-500" />
-                Redes Sociales ({socialLinks.length}/12)
+              <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-voltio" />
+                {fmt(t.editor.socialTitle, { count: socialLinks.length })}
               </h2>
               <button
                 type="button"
                 onClick={addSocialLink}
                 disabled={socialLinks.length >= 12}
-                className="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 transition-colors disabled:opacity-50"
+                className="text-xs px-3 py-1.5 rounded-lg bg-paper hover:bg-ink-3/30 text-sea border border-ink/15 transition-colors disabled:opacity-50"
               >
-                + Añadir enlace
+                {t.editor.addLink}
               </button>
             </div>
 
             {socialLinks.length === 0 ? (
-              <p className="text-xs text-slate-500 italic">No has añadido enlaces sociales todavía.</p>
+              <p className="text-xs text-ink-3 italic">{t.editor.noLinks}</p>
             ) : (
               <div className="space-y-3">
                 {socialLinks.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <input
-                      aria-label={`Plataforma del enlace social ${idx + 1}`}
+                      aria-label={fmt(t.editor.platformLabel, { n: idx + 1 })}
                       type="text"
-                      placeholder="Plataforma (ej: LinkedIn)"
+                      placeholder={t.editor.platformPlaceholder}
                       value={item.platform}
                       onChange={(e) => updateSocialLink(idx, "platform", e.target.value)}
-                      className="w-28 sm:w-32 rounded-lg bg-slate-800 border border-slate-700 px-2.5 py-1.5 text-xs text-white"
+                      className="w-28 sm:w-32 rounded-lg bg-paper border border-ink/15 px-2.5 py-1.5 text-xs text-ink"
                     />
                     <input
-                      aria-label={`URL del enlace social ${idx + 1}`}
+                      aria-label={fmt(t.editor.urlLabel, { n: idx + 1 })}
                       type="url"
                       placeholder="https://..."
                       value={item.url}
                       onChange={(e) => updateSocialLink(idx, "url", e.target.value)}
-                      className="flex-1 rounded-lg bg-slate-800 border border-slate-700 px-2.5 py-1.5 text-xs text-white font-mono"
+                      className="flex-1 rounded-lg bg-paper border border-ink/15 px-2.5 py-1.5 text-xs text-ink font-mono"
                     />
                     <button
                       type="button"
                       onClick={() => removeSocialLink(idx)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                      title="Eliminar"
+                      className="p-1.5 rounded-lg text-ink-2 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
+                      title={t.editor.remove}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -660,18 +664,18 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
           </div>
 
           {/* SECCIÓN 6: Slug y Estado */}
-          <div id="publicacion" className="scroll-mt-32 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-4 shadow-lg">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <div id="publicacion" className="scroll-mt-32 bg-paper-2 border border-ink/15 rounded-2xl p-4 sm:p-6 space-y-4 shadow-lg">
+            <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-500" />
-              Configuración de la URL
+              {t.editor.urlTitle}
             </h2>
 
             <div>
-              <label htmlFor="card-slug" className="block text-xs font-medium text-slate-300 mb-1">
-                Slug (identificador de enlace público)
+              <label htmlFor="card-slug" className="block text-xs font-medium text-ink-2 mb-1">
+                {t.editor.slugLabel}
               </label>
-              <div className="flex items-center rounded-xl bg-slate-800 border border-slate-700 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
-                <span className="px-3 text-xs text-slate-400 font-mono bg-slate-850">
+              <div className="flex items-center rounded-xl bg-paper border border-ink/15 overflow-hidden focus-within:ring-2 focus-within:ring-sea">
+                <span className="px-3 text-xs text-ink-2 font-mono bg-paper">
                   {appUrl}/c/
                 </span>
                 <input
@@ -679,58 +683,58 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
                   type="text"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                  className="flex-1 bg-transparent px-3 py-2 text-sm text-white font-mono focus:outline-none"
+                  className="flex-1 bg-transparent px-3 py-2 text-sm text-ink font-mono focus:outline-none"
                 />
               </div>
             </div>
 
             <div className="pt-2 flex items-center justify-between">
               <div>
-                <span className="block text-xs font-semibold text-white">Tarjeta activa</span>
-                <span className="block text-[11px] text-slate-400">
-                  Si la desactivas, cualquier persona que visite tu enlace verá un error 404.
+                <span className="block text-xs font-semibold text-ink">{t.editor.cardActive}</span>
+                <span className="block text-[11px] text-ink-2">
+                  {t.editor.cardActiveHelp}
                 </span>
               </div>
               <label className="inline-flex items-center cursor-pointer">
                 <input
-                  aria-label="Publicar tarjeta"
+                  aria-label={t.editor.publishToggle}
                   type="checkbox"
                   checked={active}
                   onChange={(e) => setActive(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-10 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600 relative" />
+                <div className="w-10 h-5 bg-ink-3/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sea relative" />
               </label>
             </div>
 
-            <div className="pt-2 flex items-center justify-between border-t border-slate-800">
+            <div className="pt-2 flex items-center justify-between border-t border-ink/15">
               <div>
-                <span className="block text-xs font-semibold text-white">
-                  Permitir añadir a Google Wallet
+                <span className="block text-xs font-semibold text-ink">
+                  {t.editor.allowWallet}
                 </span>
-                <span className="block text-[11px] text-slate-400">
-                  Muestra el botón oficial en tu tarjeta pública para que cualquier persona pueda guardarte en su teléfono.
+                <span className="block text-[11px] text-ink-2">
+                  {t.editor.allowWalletHelp}
                 </span>
               </div>
               <label className="inline-flex items-center cursor-pointer">
                 <input
-                  aria-label="Permitir añadir la tarjeta a Google Wallet"
+                  aria-label={t.editor.allowWalletToggle}
                   type="checkbox"
                   checked={allowPublicWallet}
                   onChange={(e) => setAllowPublicWallet(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-10 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative" />
+                <div className="w-10 h-5 bg-ink-3/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative" />
               </label>
             </div>
 
             {allowPublicWallet && (
-              <div className="pt-3 border-t border-slate-800 space-y-2">
-                <span className="block text-xs font-semibold text-slate-300">
-                  Tu pase de Google Wallet
+              <div className="pt-3 border-t border-ink/15 space-y-2">
+                <span className="block text-xs font-semibold text-ink-2">
+                  {t.editor.yourPass}
                 </span>
-                <p className="text-[11px] text-slate-400">
-                  Añade tu propia tarjeta a Google Wallet para llevarla siempre en tu teléfono:
+                <p className="text-[11px] text-ink-2">
+                  {t.editor.yourPassHelp}
                 </p>
                 <div className="max-w-xs">
                   <GoogleWalletButton slug={savedSlug} isOwner={true} />
@@ -747,19 +751,19 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
 
         {/* Columna Derecha: Vista Previa en Vivo */}
         <div className={`lg:col-span-5 sticky top-6 ${mobileTab === "edit" ? "hidden lg:block" : "block"}`}>
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+          <div className="bg-paper-2 border border-ink/15 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-ink/15">
+              <span className="text-xs font-bold text-ink-2 uppercase tracking-wider flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Vista previa en vivo
+                {t.editor.previewTitle}
               </span>
-              <span className="text-[11px] text-slate-400">
-                Plantilla: <strong className="text-white">{template}</strong>
+              <span className="text-[11px] text-ink-2">
+                {t.editor.template} <strong className="text-ink">{t.editor.templates[template].label}</strong>
               </span>
             </div>
 
             {/* Marco de teléfono simulado */}
-            <div className="rounded-[2.5rem] p-3 sm:p-4 bg-slate-950 border-4 border-slate-800 shadow-inner flex justify-center">
+            <div className="rounded-[2.5rem] p-3 sm:p-4 bg-paper border-4 border-ink/15 shadow-inner flex justify-center">
               <CardView
                 card={{
                   slug,
@@ -769,7 +773,7 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
                   allowPublicWallet,
                 }}
                 content={{
-                  name: name || "Tu Nombre",
+                  name: name || t.editor.yourName,
                   jobTitle,
                   company,
                   bio,
@@ -792,21 +796,21 @@ export default function CardEditor({ initialCard, appUrl }: CardEditorProps) {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-800 bg-slate-950/95 p-3 backdrop-blur-xl lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/15 bg-paper/95 p-3 backdrop-blur-xl lg:hidden">
         <div className="mx-auto flex max-w-7xl items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className={`truncate text-xs font-semibold ${hasUnsavedChanges ? "text-amber-300" : "text-emerald-300"}`}>
-              {hasUnsavedChanges ? "Tienes cambios sin guardar" : "Todos los cambios están guardados"}
+            <p className={`truncate text-xs font-semibold ${hasUnsavedChanges ? "text-amber-700 dark:text-amber-300" : "text-emerald-700 dark:text-emerald-300"}`}>
+              {hasUnsavedChanges ? t.editor.unsavedBar : t.editor.allSavedBar}
             </p>
-            <p className="truncate text-[11px] text-slate-500">/c/{savedSlug}</p>
+            <p className="truncate text-[11px] text-ink-3">/c/{savedSlug}</p>
           </div>
           <button
             type="button"
             onClick={handleSave}
             disabled={isPending || !hasUnsavedChanges}
-            className="min-h-11 shrink-0 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500"
+            className="min-h-11 shrink-0 rounded-xl bg-voltio px-5 text-sm font-semibold text-basalto shadow-lg transition-colors hover:bg-voltio/90 disabled:bg-paper disabled:text-ink-3"
           >
-            {isPending ? "Guardando…" : hasUnsavedChanges ? "Guardar" : "Guardado"}
+            {isPending ? t.editor.saving : hasUnsavedChanges ? t.editor.saveShort : t.editor.saved}
           </button>
         </div>
       </div>

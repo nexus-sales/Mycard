@@ -3,6 +3,7 @@
 import { useState, useRef, useTransition } from "react";
 import Image from "next/image";
 import { uploadCardImageAction, deleteCardImageAction } from "@/lib/actions/card";
+import { useI18n } from "@/lib/i18n/client";
 
 interface ImageUploaderProps {
   type: "avatar" | "banner";
@@ -19,6 +20,7 @@ export default function ImageUploader({
   currentPath,
   onImageChanged,
 }: ImageUploaderProps) {
+  const { t } = useI18n();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -58,7 +60,7 @@ export default function ImageUploader({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+        <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider">
           {label}
         </label>
         {currentPath && (
@@ -66,9 +68,9 @@ export default function ImageUploader({
             type="button"
             onClick={handleDelete}
             disabled={isPending}
-            className="text-xs text-rose-400 hover:text-rose-300 disabled:opacity-50"
+            className="text-xs text-rose-700 dark:text-rose-300 hover:text-rose-700 dark:hover:text-rose-300 disabled:opacity-50"
           >
-            Eliminar
+            {t.uploader.remove}
           </button>
         )}
       </div>
@@ -76,7 +78,7 @@ export default function ImageUploader({
       <div className="flex items-center gap-4">
         {/* Preview thumbnail */}
         <div
-          className={`relative overflow-hidden bg-slate-800 border border-slate-700 shrink-0 ${
+          className={`relative overflow-hidden bg-paper border border-ink/15 shrink-0 ${
             type === "avatar" ? "w-16 h-16 rounded-2xl" : "w-32 h-16 rounded-xl"
           }`}
         >
@@ -89,8 +91,8 @@ export default function ImageUploader({
               className="object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs text-center p-1">
-              Sin imagen
+            <div className="w-full h-full flex items-center justify-center text-ink-3 text-xs text-center p-1">
+              {t.uploader.noImage}
             </div>
           )}
         </div>
@@ -108,20 +110,20 @@ export default function ImageUploader({
           />
           <label
             htmlFor={`file-upload-${type}`}
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition-colors ${
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-paper hover:bg-ink-3/30 text-ink border border-ink/15 cursor-pointer transition-colors ${
               isPending ? "opacity-50 pointer-events-none" : ""
             }`}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
-            {isPending ? "Procesando con sharp…" : currentPath ? "Cambiar imagen" : "Subir archivo"}
+            {isPending ? t.uploader.processing : currentPath ? t.uploader.change : t.uploader.upload}
           </label>
-          <p className="text-[11px] text-slate-400">{helperText}</p>
+          <p className="text-[11px] text-ink-2">{helperText}</p>
         </div>
       </div>
 
-      {error && <p className="text-xs text-rose-400">{error}</p>}
+      {error && <p className="text-xs text-rose-700 dark:text-rose-300">{error}</p>}
     </div>
   );
 }
